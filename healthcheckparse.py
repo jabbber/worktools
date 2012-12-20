@@ -3,7 +3,7 @@
 import os,sys
 from bs4 import BeautifulSoup
 result={}
-for col in sys.argv[1:]:
+for col in sys.argv[2:]:
     print "parse %s" % col
     html = file(os.path.realpath(col),'r').read().decode('utf-8')
 
@@ -29,22 +29,25 @@ for col in sys.argv[1:]:
             checklog = temp[-1].div.string
         result[hostname][checkname] = checklog
 
-checkname = '检查引导日志'
-normalvalue = '正常'
+checkname = sys.argv[1]
+normalvalue = ''
 output = {}
 for hostname in sorted(result.keys()):
     if result[hostname][checkname] == normalvalue:
         pass
     else:
         abnormal = result[hostname][checkname]
-        for item in abnormal.split('\n'):
-            if output.has_key(item):
-                if hostname in output[item]:
-                    pass
+        if abnormal == None:
+            pass
+        else:
+            for item in abnormal.split('\n'):
+                if output.has_key(item):
+                    if hostname in output[item]:
+                        pass
+                    else:
+                        output[item].append(hostname)
                 else:
-                    output[item].append(hostname)
-            else:
-                output[item] = [hostname]
+                    output[item] = [hostname]
 print "%s:"%checkname
 for abnormal in output:
     if abnormal == "":
