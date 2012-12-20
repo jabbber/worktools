@@ -28,9 +28,8 @@ for col in sys.argv[2:]:
         except:
             checklog = temp[-1].div.string
         result[hostname][checkname] = checklog
-
 checkname = sys.argv[1]
-normalvalue = ''
+normalvalue = '正常'
 output = {}
 for hostname in sorted(result.keys()):
     if result[hostname][checkname] == normalvalue:
@@ -53,8 +52,8 @@ for abnormal in output:
     if abnormal == "":
         pass
     else:
-        print "hostlist:"
+        print "问题节点:"
         for hostname in output[abnormal]:
             print hostname
-        print "result:\n" + abnormal
+        print "信息结果:\n" + abnormal + "\n"
 
