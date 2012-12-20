@@ -11,10 +11,7 @@ for col in sys.argv[2:]:
     #help(soup.body.div)
     hostname,ip = soup.body.div.findChildren()
     hostname = hostname.string.encode('utf-8')
-    try:
-        ip = ip.string.encode('utf-8')
-    except:
-        ip = ip.string
+    ip = ip.get_text().encode('utf-8')
     result[hostname] = {}
     result[hostname]['ip'] = ip
     checklist = soup.body.table.find_all('tr')
@@ -23,10 +20,7 @@ for col in sys.argv[2:]:
     for item in checklist[:15]+checklist[17:]:
         temp = item.find_all('td')
         checkname = temp[-3].div.string.encode('utf-8')
-        try:
-            checklog = temp[-1].div.string.encode('utf-8')
-        except:
-            checklog = temp[-1].div.string
+        checklog = temp[-1].get_text().encode('utf-8')
         result[hostname][checkname] = checklog
 checkname = sys.argv[1]
 normalvalue = '正常'
