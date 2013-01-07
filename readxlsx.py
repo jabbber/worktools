@@ -14,22 +14,20 @@ def converthtml(sheet):
             html = False
     else:
         html = False
-
+    table = 0
     row = 0
     row_empty = 0
     row_max_empty = 10
     end = False
-    output = ""
+    output = []
     if html:
-        output += "<table border>\n"
+        output.append("<table border>\n")
     while not end:
         row += 1
         col = []
         col_empty = 0
         col_max_empty = 3
         col_end = False
-        if html:
-            output+= "  <tr>\n"
         while not col_end:
             value = sheet.cell(row=row,column=len(col)+1).value
             if value:
@@ -44,22 +42,31 @@ def converthtml(sheet):
                 col_end = True
         if html:
             if len(col) > 0:
-                output += '    <td>%s'%("</td>\n    <td>".join(col))
+                output[table] += "  <tr>\n"
+                output[table] += '    <td>%s'%("</td>\n    <td>".join(col))
+                output[table] += '</td>\n  </tr>\n'
                 row_empty = 0
             else:
                 pass
-                output += '    <td>%s'%("</td>\n    <td>".join(col))
+#                output[table] += "  <tr>\n"
+#                output[table] += '    <td>%s'%("</td>\n    <td>".join(col))
+#                output[table] += '</td>\n  </tr>\n'
                 row_empty += 1
         else:
             print "%s"%value,
-        if html:
-            output += '</td>\n  </tr>\n'
-        else:
             print ''
+        if row_empty >= 2:
+            output[table] += '</table>\n'
+            if output[table] == "<table border>\n</table>\n":
+                output.pop()
+            else:
+                table += 1
+            output.append("<table border>\n")
         if row_empty >= row_max_empty:
             end = True
     if html:
-        output += '</table>\n'
+        output[table] += '</table>\n'
+        output.pop()
     return output
 
-print converthtml(sheet_ranges)
+print converthtml(sheet_ranges)[int(sys.argv[3])]
