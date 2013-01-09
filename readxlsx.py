@@ -14,6 +14,7 @@ def converthtml(sheet):
             html = False
     else:
         html = False
+    tablestyle = 'border="1" style="border-collapse:collapse"'
     table = 0
     row = 0
     row_empty = 0
@@ -21,7 +22,7 @@ def converthtml(sheet):
     end = False
     output = []
     if html:
-        output.append('<table border style="width:1564pt;border-collapse:collapse">\n')
+        output.append('<table %s>\n'%tablestyle)
     while not end:
         row += 1
         col = []
@@ -45,12 +46,11 @@ def converthtml(sheet):
                 if "开放系统运维组名称未定义 " in col:
                     pass
                 else:
-                    output[table] += "  <tr>\n"
-                    output[table] += '    <td>%s'%("</td>\n    <td>".join(col))
+                    output[table] += '  <tr>\n'
+                    output[table] += '    <td style="white-space:nowrap">%s'%('</td>\n    <td style="white-space:nowrap">'.join(col))
                     output[table] += '</td>\n  </tr>\n'
                     row_empty = 0
             else:
-                pass
 #                output[table] += "  <tr>\n"
 #                output[table] += '    <td>%s'%("</td>\n    <td>".join(col))
 #                output[table] += '</td>\n  </tr>\n'
@@ -60,11 +60,11 @@ def converthtml(sheet):
             print ''
         if row_empty >= 2:
             output[table] += '</table>\n'
-            if output[table] == "<table border>\n</table>\n":
+            if output[table] == '<table %s>\n</table>\n'%tablestyle:
                 output.pop()
             else:
                 table += 1
-            output.append("<table border>\n")
+            output.append('<table %s>\n'%tablestyle)
         if row_empty >= row_max_empty:
             end = True
     if html:
