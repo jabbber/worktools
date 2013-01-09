@@ -21,7 +21,7 @@ def converthtml(sheet):
     end = False
     output = []
     if html:
-        output.append("<table border>\n")
+        output.append('<table border style="width:1564pt;border-collapse:collapse">\n')
     while not end:
         row += 1
         col = []
@@ -42,10 +42,13 @@ def converthtml(sheet):
                 col_end = True
         if html:
             if len(col) > 0:
-                output[table] += "  <tr>\n"
-                output[table] += '    <td>%s'%("</td>\n    <td>".join(col))
-                output[table] += '</td>\n  </tr>\n'
-                row_empty = 0
+                if "开放系统运维组名称未定义 " in col:
+                    pass
+                else:
+                    output[table] += "  <tr>\n"
+                    output[table] += '    <td>%s'%("</td>\n    <td>".join(col))
+                    output[table] += '</td>\n  </tr>\n'
+                    row_empty = 0
             else:
                 pass
 #                output[table] += "  <tr>\n"
