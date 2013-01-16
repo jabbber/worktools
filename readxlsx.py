@@ -7,13 +7,6 @@ wb = load_workbook(filename = sys.argv[1])
 sheet_ranges = wb.get_active_sheet()
 
 def converthtml(sheet):
-    if len(sys.argv) > 2:
-        if sys.argv[2] == "html":
-            html = True
-        else:
-            html = False
-    else:
-        html = False
     tablestyle = 'border="1" style="border-collapse:collapse"'
     table = 0
     row = 0
@@ -21,8 +14,7 @@ def converthtml(sheet):
     row_max_empty = 10
     end = False
     output = []
-    if html:
-        output.append('<table %s>\n'%tablestyle)
+    output.append('<table %s>\n'%tablestyle)
     while not end:
         row += 1
         col = []
@@ -47,23 +39,19 @@ def converthtml(sheet):
             if col_empty >= col_max_empty:
                 col = col[:-col_max_empty]
                 col_end = True
-        if html:
-            if len(col) > 0:
-                if u"开放系统运维组名称未定义 " in col:
-                    pass
-                else:
-                    output[table] += '  <tr>\n'
-                    output[table] += '    <td style="white-space:nowrap">%s'%('</td>\n    <td style="white-space:nowrap">'.join(col))
-                    output[table] += '</td>\n  </tr>\n'
-                    row_empty = 0
+        if len(col) > 0:
+            if u"开放系统运维组名称未定义 " in col:
+                pass
             else:
-#                output[table] += "  <tr>\n"
-#                output[table] += '    <td>%s'%("</td>\n    <td>".join(col))
-#                output[table] += '</td>\n  </tr>\n'
-                row_empty += 1
+                output[table] += '  <tr>\n'
+                output[table] += '    <td style="white-space:nowrap">%s'%('</td>\n    <td style="white-space:nowrap">'.join(col))
+                output[table] += '</td>\n  </tr>\n'
+                row_empty = 0
         else:
-            print "%s"%value,
-            print ''
+#           output[table] += "  <tr>\n"
+#           output[table] += '    <td>%s'%("</td>\n    <td>".join(col))
+#           output[table] += '</td>\n  </tr>\n'
+            row_empty += 1
         if row_empty >= 2:
             output[table] += '</table>\n'
             if output[table] == '<table %s>\n</table>\n'%tablestyle:
@@ -73,9 +61,8 @@ def converthtml(sheet):
             output.append('<table %s>\n'%tablestyle)
         if row_empty >= row_max_empty:
             end = True
-    if html:
-        output[table] += '</table>\n'
-        output.pop()
+    output[table] += '</table>\n'
+    output.pop()
     return output
 
-print converthtml(sheet_ranges)[int(sys.argv[3])].encode("utf-8")
+print converthtml(sheet_ranges)[int(sys.argv[2])].encode("utf-8")
