@@ -33,9 +33,12 @@ def converthtml(sheet):
             value = sheet.cell(row=row,column=len(col)+1).value
             if value:
                 if type(value) == str:
-                    value = value.encode('utf-8')
+                    #value = value.encode('utf-8')
+                    pass
                 elif type(value) == int:
                     value = str(value)
+                else:
+                    pass
                 col_empty = 0
             else:
                 value = ''
@@ -75,4 +78,4 @@ def converthtml(sheet):
         output.pop()
     return output
 
-print converthtml(sheet_ranges)[int(sys.argv[3])]
+print converthtml(sheet_ranges)[int(sys.argv[3])].encode("utf-8")
