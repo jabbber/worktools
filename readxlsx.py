@@ -32,7 +32,10 @@ def converthtml(sheet):
         while not col_end:
             value = sheet.cell(row=row,column=len(col)+1).value
             if value:
-                value = value.encode('utf-8')
+                if type(value) == str:
+                    value = value.encode('utf-8')
+                elif type(value) == int:
+                    value = str(value)
                 col_empty = 0
             else:
                 value = ''
@@ -43,7 +46,7 @@ def converthtml(sheet):
                 col_end = True
         if html:
             if len(col) > 0:
-                if "开放系统运维组名称未定义 " in col:
+                if u"开放系统运维组名称未定义 " in col:
                     pass
                 else:
                     output[table] += '  <tr>\n'
