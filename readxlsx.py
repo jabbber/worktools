@@ -75,6 +75,13 @@ def converthtml(sheet):
     output[table] += '</table>\n'
     output.pop()
     return output
-for n in sys.argv[2:]:
-    print converthtml(sheet_ranges)[int(n)].encode("utf-8")
-    print '<br/>'.encode('utf-8')
+
+tables = converthtml(sheet_ranges)
+if sys.argv[2] == 'all':
+    for table in tables:
+        print table.encode("utf-8")
+        print '<br/>'.encode('utf-8')
+else:
+    for n in sys.argv[2:]:
+        print tables[int(n)].encode("utf-8")
+        print '<br/>'.encode('utf-8')
