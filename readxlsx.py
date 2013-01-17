@@ -6,15 +6,25 @@ from openpyxl.reader.excel import load_workbook
 wb = load_workbook(filename = sys.argv[1])
 sheet_ranges = wb.get_active_sheet()
 
+def valformat(value):
+    if type(value) == str:
+        pass
+    elif type(value) == int:
+        value = str(value)
+    else:
+        pass
+    return value
+
 def converthtml(sheet):
     tablestyle = 'border="1" style="border-collapse:collapse"'
     table = 0
     row = 0
     row_empty = 0
-    row_max_empty = 10
+    row_max_empty = 20
     end = False
     output = []
     output.append('<table %s>\n'%tablestyle)
+    th = None
     while not end:
         row += 1
         col = []
@@ -22,15 +32,9 @@ def converthtml(sheet):
         col_max_empty = 3
         col_end = False
         while not col_end:
-            value = sheet.cell(row=row,column=len(col)+1).value
+            value = sheet.cell(row=row,column=len(col)).value
             if value:
-                if type(value) == str:
-                    #value = value.encode('utf-8')
-                    pass
-                elif type(value) == int:
-                    value = str(value)
-                else:
-                    pass
+                value = valformat(value)
                 col_empty = 0
             else:
                 value = ''
@@ -39,10 +43,16 @@ def converthtml(sheet):
             if col_empty >= col_max_empty:
                 col = col[:-col_max_empty]
                 col_end = True
-        if len(col) > 0:
+        if len(col) == 1:
+            if not th:
+                th = col[0]
+        elif len(col) > 1:
             if u"开放系统运维组名称未定义 " in col:
                 pass
             else:
+                if not th:
+                    th = sheet.cell(row=row-2,column=0).value
+                    output[table] += '  %s<br/>\n'%th
                 output[table] += '  <tr>\n'
                 output[table] += '    <td style="white-space:nowrap">%s'%('</td>\n    <td style="white-space:nowrap">'.join(col))
                 output[table] += '</td>\n  </tr>\n'
@@ -59,10 +69,12 @@ def converthtml(sheet):
             else:
                 table += 1
             output.append('<table %s>\n'%tablestyle)
+            th = None
         if row_empty >= row_max_empty:
             end = True
     output[table] += '</table>\n'
     output.pop()
     return output
-
-print converthtml(sheet_ranges)[int(sys.argv[2])].encode("utf-8")
+for n in sys.argv[2:]:
+    print converthtml(sheet_ranges)[int(n)].encode("utf-8")
+    print '<br/>'.encode('utf-8')
