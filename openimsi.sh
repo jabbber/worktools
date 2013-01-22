@@ -1,4 +1,29 @@
 #!/bin/bash
+#auto output openimsi daily report
+<<MAIL
+to:     
+赖敏虹 <laiminhong@abchina.com>,
+张琦俊 <zhangqijun@abchina.com>,
+胡从兴 <hucongxing@abchina.com>,
+孔详逸 <kongxiangyi@abchina.com>,
+方国亮 <fangguoliang@abchina.com>,
+程超 <chengchao@abchina.com>,
+李柯可 <likeke@abchina.com>,
+刘冰 <liubing@abchina.com>,
+刘建华 <liujianhua@abchina.com>,
+v-yuqu <v-yuqu@microsoft.com>,
+15821906542 <15821906542@139.com>,
+18221668349 <18221668349@139.com>,
+钟聪敏 <zcm@skybility.com>
+赵忠亮 <zhaozhongliang@skybility.com>,
+cc:  
+张春 <zhangchun@abchina.com>,
+张乾尊 <zhangqianzun@abchina.com>,
+谢鹏 <xiepeng@abchina.com>
+subject:
+运维三组openimis报表检查汇总--xxxxxxxx
+MAIL
+
 cat <<HEAD
 大家好！<br><p class="MsoNormal" align="left" style="line-height:12.75pt;text-indent:24pt">附件是昨天的openimis报表的汇总，其中有以下问题需要个位系统管理员关注
 一下，其中有些数据可能与openimis未同步，还是请管理员确认一下，以免出错。</p>
