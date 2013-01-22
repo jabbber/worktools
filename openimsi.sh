@@ -14,8 +14,8 @@ to:     
 v-yuqu <v-yuqu@microsoft.com>,
 15821906542 <15821906542@139.com>,
 18221668349 <18221668349@139.com>,
-钟聪敏 <zcm@skybility.com>
-赵忠亮 <zhaozhongliang@skybility.com>,
+钟聪敏 <zcm@skybility.com>,
+赵忠亮 <zhaozhongliang@skybility.com>
 cc:  
 张春 <zhangchun@abchina.com>,
 张乾尊 <zhangqianzun@abchina.com>,
