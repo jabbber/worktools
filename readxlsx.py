@@ -49,7 +49,10 @@ def converthtml(sheet):
                 pass
             else:
                 if not th:
-                    th = sheet.cell(row=row-2,column=0).value
+                    try:
+                        th = sheet.cell(row=row-2,column=0).value
+                    except:
+                        th = ""
                     output[table] += '  %s<br/>\n'%th
                 output[table] += '  <tr>\n'
                 output[table] += '    <td style="white-space:nowrap">%s'%('</td>\n    <td style="white-space:nowrap">'.join(col))
