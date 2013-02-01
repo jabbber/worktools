@@ -3,8 +3,6 @@
 import sys
 from openpyxl.reader.excel import load_workbook
 
-wb = load_workbook(filename = sys.argv[1])
-sheet_ranges = wb.get_active_sheet()
 
 def valformat(value):
     if type(value) == str:
@@ -75,13 +73,19 @@ def converthtml(sheet):
     output[table] += '</table>\n'
     output.pop()
     return output
-
-tables = converthtml(sheet_ranges)
-if sys.argv[2] == 'all':
-    for table in tables:
-        print table.encode("utf-8")
-        print '<br/>'.encode('utf-8')
-else:
-    for n in sys.argv[2:]:
-        print tables[int(n)].encode("utf-8")
-        print '<br/>'.encode('utf-8')
+def xlsx2html(xlsxfile,num = ['all']):
+    wb = load_workbook(filename = xlsxfile)
+    sheet_ranges = wb.get_active_sheet()
+    tables = converthtml(sheet_ranges)
+    output = ''
+    if num[0] == 'all':
+        for table in tables:
+            output += table.encode("utf-8")
+            output +=  '<br/>'.encode('utf-8')
+    else:
+        for n in num:
+            output += tables[int(n)].encode("utf-8")
+            output +=  '<br/>'.encode('utf-8')
+    return output
+if __name__ == "__main__":
+    print xlsx2html(sys.argv[1],sys.argv[2:])
