@@ -28,14 +28,18 @@ cat <<HEAD
 大家好！<br><p class="MsoNormal" align="left" style="line-height:12.75pt;text-indent:24pt">附件是昨天的openimis报表的汇总，其中有以下问题需要个位系统管理员关注
 一下，其中有些数据可能与openimis未同步，还是请管理员确认一下，以免出错。</p>
 HEAD
-echo "1)日常检查异常统计，请各位管理员关注自己的系统。<br/>"
+echo "1)日常检查异常统计:<br/>"
 ${0%/*}/readxlsx.py $1/开放平台开放平台日常检查异常统计表*.xlsx 1
 
-echo "2)开放平台报警系统管理员后续处理跟踪。<br/>"
-${0%/*}/readxlsx.py $1/开放平台开放平台报警系统管理员后续处理跟踪表*.xlsx all
+echo "2)"
+${0%/*}/readxlsx.py $1/开放平台开放平台应用服务器到OPENIMIS报警连通情况统计表*.xlsx 0
 
-echo "3)"
+echo "3)开放平台报警系统管理员后续处理跟踪:<br/>"
+${0%/*}/readxlsx.py $1/开放平台开放平台报警系统管理员后续处理跟踪表*.xlsx 0 1
+
+echo "4)"
 ${0%/*}/readxlsx.py $1/开放平台开放平台操作系统定义作业变化情况统计表*.xlsx 0
+
 
 cat <<FOOT
 <div><font color="#000000">Best Regards,</font></div>
