@@ -15,19 +15,21 @@ def table2html(table):
     html += '</table>'
     return html
 
-def xlsx2html(xlsxfile,title = ['all']):
+def xlsx2html(xlsxfile,titles = ['all']):
     t = Tables()
     t.load_xlsx(xlsxfile)
     output = ''
-    if title[0] == 'all':
+    if titles[0] == 'all':
         for title in t.titles:
             output += ('%s\n'%title).encode('utf-8')
             output += table2html(t.tables[title]).encode("utf-8")
             output += '<br/>\n'.encode('utf-8')
     else:
-        for n in num:
-            output += tables[int(n)].encode("utf-8")
-            output +=  '<br/>\n'.encode('utf-8')
+        for title in titles:
+            title = title.decode('utf-8')
+            output += ('%s\n'%title).encode('utf-8')
+            output += table2html(t.tables[title]).encode("utf-8")
+            output += '<br/>\n'.encode('utf-8')
     return output
 
 class Tables():
