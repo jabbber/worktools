@@ -18,10 +18,9 @@ def converthtml(sheet):
     table = 0
     row = 0
     row_empty = 0
-    row_max_empty = 20
+    row_max_empty = 100
     end = False
     output = []
-    output.append('<table %s>\n'%tablestyle)
     th = None
     while not end:
         row += 1
@@ -44,37 +43,31 @@ def converthtml(sheet):
         if len(col) == 1:
             if not th:
                 th = col[0]
+                output.append('<table %s>\n'%tablestyle)
+                output[table] += '  %s<br/>\n'%th
+            else:
+                output[table] += '</table>\n'
+                if output[table] == '<table %s>\n</table>\n'%tablestyle:
+                    output.pop()
+                else:
+                    table += 1
+                th = col[0]
+                output.append('<table %s>\n'%tablestyle)
+                output[table] += '  %s<br/>\n'%th
         elif len(col) > 1:
-            if u"开放系统运维组名称未定义 " in col:
-                pass
-            else:
-                if not th:
-                    try:
-                        th = sheet.cell(row=row-2,column=0).value
-                    except:
-                        th = ""
-                    output[table] += '  %s<br/>\n'%th
-                output[table] += '  <tr>\n'
-                output[table] += '    <td style="white-space:nowrap">%s'%('</td>\n    <td style="white-space:nowrap">'.join(col))
-                output[table] += '</td>\n  </tr>\n'
-                row_empty = 0
+            if not th:
+                th = ""
+                output.append('<table %s>\n'%tablestyle)
+                output[table] += '  %s<br/>\n'%th
+            output[table] += '  <tr>\n'
+            output[table] += '    <td style="white-space:nowrap">%s'%('</td>\n    <td style="white-space:nowrap">'.join(col))
+            output[table] += '</td>\n  </tr>\n'
+            row_empty = 0
         else:
-#           output[table] += "  <tr>\n"
-#           output[table] += '    <td>%s'%("</td>\n    <td>".join(col))
-#           output[table] += '</td>\n  </tr>\n'
             row_empty += 1
-        if row_empty >= 2:
-            output[table] += '</table>\n'
-            if output[table] == '<table %s>\n</table>\n'%tablestyle:
-                output.pop()
-            else:
-                table += 1
-            output.append('<table %s>\n'%tablestyle)
-            th = None
         if row_empty >= row_max_empty:
             end = True
     output[table] += '</table>\n'
-    output.pop()
     return output
 def xlsx2html(xlsxfile,num = ['all']):
     wb = load_workbook(filename = xlsxfile)
@@ -84,11 +77,11 @@ def xlsx2html(xlsxfile,num = ['all']):
     if num[0] == 'all':
         for table in tables:
             output += table.encode("utf-8")
-            output +=  '<br/>'.encode('utf-8')
+            output +=  '<br/>\n'.encode('utf-8')
     else:
         for n in num:
             output += tables[int(n)].encode("utf-8")
-            output +=  '<br/>'.encode('utf-8')
+            output +=  '<br/>\n'.encode('utf-8')
     return output
 if __name__ == "__main__":
     print xlsx2html(sys.argv[1],sys.argv[2:])
