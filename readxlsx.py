@@ -2,6 +2,8 @@
 # -*- coding: utf-8 -*-
 import sys
 from openpyxl.reader.excel import load_workbook
+from openpyxl import Workbook
+from openpyxl.cell import get_column_letter
 
 class Tables():
     def __init__(self):
@@ -83,10 +85,29 @@ class Tables():
                 output += self.__table2html(self.tables[title]).encode("utf-8")
                 output += '<br/>\n'.encode('utf-8')
         return output
+    def getxlsx(self,dest_filename):
+        wb = Workbook()
+        ws = wb.worksheets[0]
+        row_num = 0
+        for title in self.titles:
+#            ws.append([title])
+            row_num += 1
+            ws.cell('%s%s'%(get_column_letter(1), row_num)).value = title
+            row_num += 1
+            for row in self.tables[title]:
+#                ws.append(row)
+                row_num += 1
+                col_num = 0
+                for col in row:
+                    col_num += 1
+                    ws.cell('%s%s'%(get_column_letter(col_num), row_num)).value = col
+            row_num += 1
+        wb.save(filename = dest_filename)
 
 def xlsx2html(xlsxfile,titles = ['all']):
     t = Tables()
     t.load_xlsx(xlsxfile)
+#    t.getxlsx("test.xlsx")
     return t.gethtml(titles)
 
 if __name__ == "__main__":
