@@ -4,6 +4,7 @@ import sys
 from openpyxl.reader.excel import load_workbook
 from openpyxl import Workbook
 from openpyxl.cell import get_column_letter
+import openpyxl.style
 
 class Tables():
     def __init__(self):
@@ -12,6 +13,7 @@ class Tables():
     def load_xlsx(self,xlsx_file):
         wb = load_workbook(filename = xlsx_file)
         sheet_ranges = wb.get_active_sheet()
+#        print sheet_ranges.get_style('A7')
 
         table = 0
         row = 0
@@ -35,7 +37,6 @@ class Tables():
                 if col_empty >= col_max_empty:
                     col = col[:-col_max_empty]
                     col_end = True
-            row += 1
             if len(col) == 1:
                 if not th:
                     th = col[0]
@@ -60,6 +61,8 @@ class Tables():
                 end = True
                 self.titles.append(th)
                 self.tables[th] = worktable
+            row += 1
+        return 0
     def __table2html(self,table):
         tablestyle = 'border="1" style="border-collapse:collapse"'
         tdstyle = 'style="white-space:nowrap"'
@@ -71,6 +74,26 @@ class Tables():
             html += '  </tr>\n'
         html += '</table>'
         return html
+    def __xlsx_setstyle(self,style,style_string):
+        argv = style_string.split(':')
+        n = 0
+        fields = {'font':('name','size','bold','italic','superscript','subscript','underline','strikethrough','color'),
+                'fill':('fill_type','rotation','start_color','end_color'),
+                'borders':('left','right','top','bottom','diagonal','diagonal_direction','all_borders','outline','inside','vertical','horizontal'),
+                'alignment':('horizontal','vertical','text_rotation','wrap_text','shrink_to_fit','indent'),
+                'number_format':('_format_code','_format_index'),
+                'protection':('locked','hidden')
+                }
+        for obj in ('font','fill','borders','alignment','number_format','protection'):
+            for val in fields[obj]:
+                if obj == 'borders' and val != 'diagonal_direction':
+                    for val_1 in ('border_style','color'):
+                        exec "style.%s.%s.%s = eval(argv[n])"%(obj,val,val_1)
+                        n += 1
+                else:
+                    exec "style.%s.%s = eval(argv[n])"%(obj,val)
+                    n += 1
+        return style
     def gethtml(self,titles = ['all']):
         output = ''
         if titles[0] == 'all':
@@ -92,7 +115,8 @@ class Tables():
         for title in self.titles:
 #            ws.append([title])
             row_num += 1
-            ws.cell('%s%s'%(get_column_letter(1), row_num)).value = title
+            cell = ws.cell('%s%s'%(get_column_letter(1), row_num))
+            cell.value = title
             row_num += 1
             for row in self.tables[title]:
 #                ws.append(row)
@@ -100,7 +124,8 @@ class Tables():
                 col_num = 0
                 for col in row:
                     col_num += 1
-                    ws.cell('%s%s'%(get_column_letter(col_num), row_num)).value = col
+                    cell = ws.cell('%s%s'%(get_column_letter(col_num), row_num))
+                    cell.value = col
             row_num += 1
         wb.save(filename = dest_filename)
 
@@ -111,5 +136,5 @@ def xlsx2html(xlsxfile,titles = ['all']):
     return t.gethtml(titles)
 
 if __name__ == "__main__":
-    print xlsx2html(sys.argv[1],sys.argv[2:])
+    xlsx2html(sys.argv[1],sys.argv[2:])
 
