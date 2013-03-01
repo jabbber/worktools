@@ -64,14 +64,26 @@ class Tables():
             row += 1
         return 0
     def __table2html(self,table):
-        tablestyle = 'border="1" style="border-collapse:collapse"'
+        WIDTH = {'序号':30,
+                }
+        tablestyle = "style='BORDER-BOTTOM-STYLE: solid; BORDER-RIGHT-STYLE: solid; BORDER-TOP-STYLE: solid; BORDER-LEFT-STYLE: solid' border=1 cellSpacing=0 width='100%' borderColor=#000000 cellPadding=1 bgColor=#ffffff"
         tdstyle = 'style="white-space:nowrap"'
         html = '<table %s>\n'%tablestyle
         for row in table:
-            html += '  <tr>\n'
-            for val in row:
-                html += '<td %s>%s</td>\n'%(tdstyle,val)
-            html += '  </tr>\n'
+            if row[0] == '序号'.decode('utf-8'):
+                html += '  <tr>\n'
+                for val in row:
+                    if WIDTH.has_key(val.encode('utf-8')):
+                        width = WIDTH[val.encode('utf-8')]
+                        html += u"<td width=%s ><NOBR><FONT size=2 face=宋体 color=#0909f7><STRONG>%s</STRONG></FONT></NOBR></td>"%(width,val)
+                    else:
+                        html += u"<td width=120 ><NOBR><FONT size=2 face=宋体 color=#0909f7><STRONG>%s</STRONG></FONT></NOBR></td>"%val
+                html += '  </tr>\n'
+            else:
+                html += '  <tr>\n'
+                for val in row:
+                    html += u"<td style='word-break:break-all' ><FONT size=2 face=宋体  >%s</FONT></td>"%val
+                html += '  </tr>\n'
         html += '</table>'
         return html
     def __xlsx_setstyle(self,style,style_string):
@@ -98,16 +110,16 @@ class Tables():
         output = ''
         if titles[0] == 'all':
             for title in self.titles:
-                output += ('%s\n'%title).encode('utf-8')
-                output += self.__table2html(self.tables[title]).encode("utf-8")
-                output += '<br/>\n'.encode('utf-8')
+                output += ('%s\n'%title)
+                output += self.__table2html(self.tables[title])
+                output += '<br/>\n'
         else:
             for title in titles:
                 title = title.decode('utf-8')
-                output += ('%s\n'%title).encode('utf-8')
-                output += self.__table2html(self.tables[title]).encode("utf-8")
-                output += '<br/>\n'.encode('utf-8')
-        return output
+                output += ('%s\n'%title)
+                output += self.__table2html(self.tables[title])
+                output += '<br/>\n'
+        return output.encode('utf-8')
     def getxlsx(self,dest_filename):
         wb = Workbook()
         ws = wb.worksheets[0]
@@ -136,5 +148,5 @@ def xlsx2html(xlsxfile,titles = ['all']):
     return t.gethtml(titles)
 
 if __name__ == "__main__":
-    xlsx2html(sys.argv[1],sys.argv[2:])
+    print xlsx2html(sys.argv[1],sys.argv[2:])
 
