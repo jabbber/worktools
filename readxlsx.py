@@ -64,9 +64,9 @@ class Tables():
             row += 1
         return 0
     def __table2html(self,table):
-        WIDTH = {'序号':30,
+        WIDTH = {'序号':20,
                 }
-        tablestyle = "style='BORDER-BOTTOM-STYLE: solid; BORDER-RIGHT-STYLE: solid; BORDER-TOP-STYLE: solid; BORDER-LEFT-STYLE: solid' border=1 cellSpacing=0 width='100%' borderColor=#000000 cellPadding=1 bgColor=#ffffff"
+        tablestyle = "width=1200 style='BORDER-BOTTOM-STYLE: solid; BORDER-RIGHT-STYLE: solid; BORDER-TOP-STYLE: solid; BORDER-LEFT-STYLE: solid' border=1 cellSpacing=0 borderColor=#000000 cellPadding=1 bgColor=#ffffff"
         tdstyle = 'style="white-space:nowrap"'
         html = '<table %s>\n'%tablestyle
         for row in table:
