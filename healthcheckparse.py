@@ -40,7 +40,10 @@ for col in sys.argv[2:]:
                 result[hostname][checkname] = [interfacename1,interfacestat1,interfacename2,interfacestat2]
 print '\r                                                                                                                                  '
 checkname = sys.argv[1]
-if checkname != '系统网络状态':
+if checkname == 'ip':
+    for hostname in sorted(result.keys()):
+        print hostname + " " + result[hostname]['ip']
+elif checkname != '系统网络状态':
     normalvalue = '正常'
     output = {}
     for hostname in sorted(result.keys()):
