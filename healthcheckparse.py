@@ -51,7 +51,7 @@ if checkname != '系统网络状态':
             if abnormal == None:
                 pass
             else:
-                for item in abnormal.split('\n'):
+                for item in [abnormal]:#.split('\n'):
                     if output.has_key(item):
                         if hostname in output[item]:
                             pass
@@ -64,10 +64,13 @@ if checkname != '系统网络状态':
         if abnormal == "":
             pass
         else:
-            print "问题节点:"
+            print "问题分区名:"
             for hostname in output[abnormal]:
                 print hostname
-            print "信息结果:\n" + abnormal + "\n"
+            if len(abnormal) <= 1000:
+                print "信息结果:\n" + abnormal + "\n"
+            else:
+                print "信息结果:\n" + abnormal[:1000] + "...(请打开文件查看完整信息)" + "\n"
 else:
     print "%s:\n"%checkname
     for hostname in sorted(result.keys()):
