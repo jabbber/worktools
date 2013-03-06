@@ -1,10 +1,12 @@
-#!/usr/bin/python
+#!/usr/bin/env python2
 # -*- coding: utf-8 -*-
 import os,sys
 from bs4 import BeautifulSoup
 result={}
+n = 0
 for col in sys.argv[2:]:
-    print "parse %s" % col
+    n += 1
+    print "\rparse %s/%s" % (n,len(sys.argv[2:])),
     html = file(os.path.realpath(col),'r').read().decode('utf-8')
 
     soup = BeautifulSoup(html)
@@ -36,7 +38,7 @@ for col in sys.argv[2:]:
                 interfacestat1 = values[1][12:]
                 interfacestat2 = values[4][12:]
                 result[hostname][checkname] = [interfacename1,interfacestat1,interfacename2,interfacestat2]
-
+print '\r                                                                                                                                  '
 checkname = sys.argv[1]
 if checkname != '系统网络状态':
     normalvalue = '正常'
@@ -57,7 +59,7 @@ if checkname != '系统网络状态':
                             output[item].append(hostname)
                     else:
                         output[item] = [hostname]
-    print "%s:"%checkname
+    print "%s:\n"%checkname
     for abnormal in output:
         if abnormal == "":
             pass
@@ -67,6 +69,7 @@ if checkname != '系统网络状态':
                 print hostname
             print "信息结果:\n" + abnormal + "\n"
 else:
+    print "%s:\n"%checkname
     for hostname in sorted(result.keys()):
         for bondname in result[hostname]:
             if bondname.find('bond') < 0:
