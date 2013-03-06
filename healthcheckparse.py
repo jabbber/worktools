@@ -6,7 +6,7 @@ result={}
 n = 0
 for col in sys.argv[2:]:
     n += 1
-    print "\rparse %s/%s" % (n,len(sys.argv[2:])),
+    print "\rparse %s/%s ... %s" % (n,len(sys.argv[2:]),col),
     html = file(os.path.realpath(col),'r').read().decode('utf-8')
 
     soup = BeautifulSoup(html)
