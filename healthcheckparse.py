@@ -1,6 +1,7 @@
 #!/usr/bin/env python2
 # -*- coding: utf-8 -*-
 import os,sys
+import time
 from bs4 import BeautifulSoup
 result={}
 n = 0
@@ -54,20 +55,42 @@ elif checkname != '系统网络状态':
             if abnormal == None:
                 pass
             else:
-                for item in [abnormal]:#.split('\n'):
-                    if output.has_key(item):
-                        if hostname in output[item]:
-                            pass
-                        else:
-                            output[item].append(hostname)
+                for item in abnormal.split('\n'):
+                    if item in ("","\r","\n"):
+                        pass
                     else:
-                        output[item] = [hostname]
+                        if item.find("end_request: I/O error") > 0:
+                            item = "end_request: I/O error"
+                        elif item.find("Log statistics;") > 0:
+                            item = "syslog-ng[xxx]: Log statistics;"
+                        elif item.find("sshd[") > 0:
+                            item = "sshd[xxx]: error"
+                        elif checkname == '文件系统是否需要fsck':
+                            time_str = item[-25:-1]
+                            print time_str
+                            time_sec = time.mktime(time.strptime(time_str))
+                            time_ = time.time() - time_sec
+                            if time_ < 5184000:
+                                item = "小于60天"
+                            elif time_ < 31536000:
+                                item = "小于365天"
+                            elif time_ < 86400000:
+                                item = "小于1000天"
+                            else:
+                                item = "大于1000天"
+                        if output.has_key(item):
+                            if hostname in output[item]:
+                                pass
+                            else:
+                                output[item].append(hostname)
+                        else:
+                            output[item] = [hostname]
     print "%s:\n"%checkname
     for abnormal in output:
-        if abnormal == "":
+        if abnormal in ("","\r"):
             pass
         else:
-            print "问题分区名:"
+            print "问题主机:"
             for hostname in output[abnormal]:
                 print hostname
             if len(abnormal) <= 1000:
