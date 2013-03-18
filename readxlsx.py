@@ -63,6 +63,29 @@ class Tables():
                 self.tables[th] = worktable
             row += 1
         return 0
+    def __filter(self,hostlist_file):
+        hostlist = open(hostlist_file,'r').read().split('\n')[:-1]
+        tables = {}
+        for title in self.titles:
+            table_new = []
+            for row in self.tables[title]:
+                if u'序号' in row:
+                    table_new.append(row)
+                else:
+                    result = False
+                    n = 0
+                    while not result:
+                        for host in hostlist:
+                            if result == False:
+                                if type(row[n]) == unicode:
+                                    if row[n].encode('utf-8').find(host) >= 0:
+                                        result = True
+                                        table_new.append(row)
+                        if n >= len(row) - 1:
+                            result = True
+                        n += 1
+            tables[title] = table_new
+        return tables
     def __table2html(self,table):
         WIDTH = {'序号':20,
                 }
@@ -70,7 +93,7 @@ class Tables():
         tdstyle = 'style="white-space:nowrap"'
         html = '<table %s>\n'%tablestyle
         for row in table:
-            if row[0] == '序号'.decode('utf-8'):
+            if row[0] == u'序号':
                 html += '  <tr>\n'
                 for val in row:
                     if WIDTH.has_key(val.encode('utf-8')):
@@ -106,21 +129,29 @@ class Tables():
                     exec "style.%s.%s = eval(argv[n])"%(obj,val)
                     n += 1
         return style
-    def gethtml(self,titles = ['all']):
+    def gethtml(self,titles = 'all',host_file = None):
+        if host_file:
+            tables = self.__filter(host_file)
+        else:
+            tables = self.tables
         output = ''
-        if titles[0] == 'all':
+        if titles == 'all':
             for title in self.titles:
                 output += ('%s\n'%title)
-                output += self.__table2html(self.tables[title])
+                output += self.__table2html(tables[title])
                 output += '<br/>\n'
         else:
-            for title in titles:
+            for title in titles.split(','):
                 title = title.decode('utf-8')
                 output += ('%s\n'%title)
-                output += self.__table2html(self.tables[title])
+                output += self.__table2html(tables[title])
                 output += '<br/>\n'
         return output.encode('utf-8')
-    def getxlsx(self,dest_filename):
+    def getxlsx(self,dest_filename,host_file = None):
+        if host_file:
+            tables = self.__filter(host_file)
+        else:
+            tables = self.tables
         wb = Workbook()
         ws = wb.worksheets[0]
         row_num = 0
@@ -130,7 +161,7 @@ class Tables():
             cell = ws.cell('%s%s'%(get_column_letter(1), row_num))
             cell.value = title
             row_num += 1
-            for row in self.tables[title]:
+            for row in tables[title]:
 #                ws.append(row)
                 row_num += 1
                 col_num = 0
@@ -141,12 +172,18 @@ class Tables():
             row_num += 1
         wb.save(filename = dest_filename)
 
-def xlsx2html(xlsxfile,titles = ['all']):
+def xlsx2html(xlsxfile,titles = 'all',host_file = None):
     t = Tables()
     t.load_xlsx(xlsxfile)
 #    t.getxlsx("test.xlsx")
-    return t.gethtml(titles)
+    return t.gethtml(titles,host_file)
 
 if __name__ == "__main__":
-    print xlsx2html(sys.argv[1],sys.argv[2:])
-
+    if len(sys.argv) == 4:
+        print xlsx2html(sys.argv[1],sys.argv[2],sys.argv[3])
+    elif len(sys.argv) == 3:
+        print xlsx2html(sys.argv[1],sys.argv[2])
+    else:
+        print """Usage:
+    readxlsx.py <name>.xlsx all/title1[,title2] [hostfile]
+        """
