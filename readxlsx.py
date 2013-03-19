@@ -104,7 +104,7 @@ class Tables():
             tables[title] = table_new
         return tables
     def __table2html(self,table):
-        WIDTH = {'序号':20,
+        WIDTH = {'序号':40,
                 }
         tablestyle = "width=1300 style='BORDER-BOTTOM-STYLE: solid; BORDER-RIGHT-STYLE: solid; BORDER-TOP-STYLE: solid; BORDER-LEFT-STYLE: solid' border=1 cellSpacing=0 borderColor=#000000 cellPadding=1 bgColor=#ffffff"
         tdstyle = 'style="white-space:nowrap"'
