@@ -63,8 +63,25 @@ class Tables():
                 self.tables[th] = worktable
             row += 1
         return 0
+    def __load_xlsx_hostlist(self,xlsx_file):
+        wb = load_workbook(filename = xlsx_file)
+        sheet_ranges = wb.get_active_sheet()
+        end = False
+        row = 0
+        hostlist = []
+        while not end:
+            value = sheet_ranges.cell(row=row,column=0).value
+            if value:
+                hostlist.append(value)
+            else:
+                end = True
+            row += 1
+        return hostlist
     def __filter(self,hostlist_file):
-        hostlist = open(hostlist_file,'r').read().split('\n')[:-1]
+        if hostlist_file[-5:] == '.xlsx':
+            hostlist = self.__load_xlsx_hostlist(hostlist_file)
+        else:
+            hostlist = open(hostlist_file,'r').read().split('\n')[:-1]
         tables = {}
         for title in self.titles:
             table_new = []
@@ -78,7 +95,7 @@ class Tables():
                         for host in hostlist:
                             if result == False:
                                 if type(row[n]) == unicode:
-                                    if row[n].encode('utf-8').find(host) >= 0:
+                                    if row[n].find(host.decode('utf-8')) >= 0:
                                         result = True
                                         table_new.append(row)
                         if n >= len(row) - 1:
@@ -142,7 +159,10 @@ class Tables():
                 output += '<br/>\n'
         else:
             for title in titles.split(','):
-                title = title.decode('utf-8')
+                try:
+                    title = title.decode('utf-8')
+                except:
+                    title = title.decode('gb18030')
                 output += ('%s\n'%title)
                 output += self.__table2html(tables[title])
                 output += '<br/>\n'
@@ -185,5 +205,7 @@ if __name__ == "__main__":
         print xlsx2html(sys.argv[1],sys.argv[2])
     else:
         print """Usage:
-    readxlsx.py <name>.xlsx all/title1[,title2] [hostfile]
+    readxlsx.py <name>.xlsx all/title1[,title2] [HOSTFILE]
+
+HOSTFILE can be an unix text file or xlsx file.
         """
