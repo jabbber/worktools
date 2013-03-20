@@ -6,6 +6,8 @@ from openpyxl import Workbook
 from openpyxl.cell import get_column_letter
 import openpyxl.style
 
+blocklist = ['任务计划没有以localadmin账户启动']
+
 class Tables():
     def __init__(self):
         self.titles = []
@@ -78,7 +80,9 @@ class Tables():
             row += 1
         return hostlist
     def __filter(self,hostlist_file):
-        if hostlist_file[-5:] == '.xlsx':
+        if not hostlist_file:
+            hostlist = ['']
+        elif hostlist_file[-5:] == '.xlsx':
             hostlist = self.__load_xlsx_hostlist(hostlist_file)
         else:
             hostlist = open(hostlist_file,'r').read().split('\n')[:-1]
@@ -90,6 +94,7 @@ class Tables():
                     table_new.append(row)
                 else:
                     result = False
+                    drop = False
                     n = 0
                     while not result:
                         for host in hostlist:
@@ -97,7 +102,15 @@ class Tables():
                                 if type(row[n]) == unicode:
                                     if row[n].find(host.decode('utf-8')) >= 0:
                                         result = True
-                                        table_new.append(row)
+                                        for col in row:
+                                            if type(col) == unicode:
+                                                for val in blocklist:
+                                                    if col.find(val.decode('utf-8')) >= 0:
+                                                        drop = True
+                                        if drop:
+                                            pass
+                                        else:
+                                            table_new.append(row)
                         if n >= len(row) - 1:
                             result = True
                         n += 1
@@ -147,10 +160,10 @@ class Tables():
                     n += 1
         return style
     def gethtml(self,titles = 'all',host_file = None):
-        if host_file:
-            tables = self.__filter(host_file)
-        else:
-            tables = self.tables
+#        if host_file:
+        tables = self.__filter(host_file)
+#        else:
+#            tables = self.tables
         output = ''
         if titles == 'all':
             for title in self.titles:
