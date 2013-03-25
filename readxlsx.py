@@ -7,12 +7,13 @@ from openpyxl.cell import get_column_letter
 import openpyxl.style
 from bs4 import BeautifulSoup
 
-blocklist = []
-
 class Tables():
+    XLSXSTYLE = "'Calibri':10:False:False:False:False:'none':False:'FF000000':'none':0:'FFFFFFFF':'FF000000':'medium':'FF000000':'medium':'FF000000':'medium':'FF000000':'medium':'FF000000':'none':'FF000000':0:'none':'FF000000':'none':'FF000000':'none':'FF000000':'none':'FF000000':'none':'FF000000':'general':'center':0:True:False:0:'General':0:'inherit':'inherit'"
+    XLSXSTYLE_title = "'Calibri':10:True:False:False:False:'none':False:'FF0000FF':'none':0:'FFFFFFFF':'FF000000':'medium':'FF000000':'medium':'FF000000':'medium':'FF000000':'medium':'FF000000':'none':'FF000000':0:'none':'FF000000':'none':'FF000000':'none':'FF000000':'none':'FF000000':'none':'FF000000':'general':'center':0:False:False:0:'General':0:'inherit':'inherit'"
     def __init__(self):
         self.titles = []
         self.tables = {}
+        self.blocklist = []
     def load(self,filename):
         ext = filename[filename.find('.')+1:]
         if ext == "xlsx":
@@ -24,7 +25,6 @@ class Tables():
     def load_html(self,html_file):
         html = file(os.path.realpath(html_file),'r').read().decode('utf-8')
         soup = BeautifulSoup(html)
-
         tables = soup.find_all('table')
         for table in tables:
             title = table.find_previous('p').get_text()
@@ -39,8 +39,6 @@ class Tables():
     def load_xlsx(self,xlsx_file):
         wb = load_workbook(filename = xlsx_file)
         sheet_ranges = wb.get_active_sheet()
-#        print sheet_ranges.get_style('A7')
-
         table = 0
         row = 0
         row_empty = 0
@@ -97,15 +95,15 @@ class Tables():
         hostlist = []
         while not end:
             value = sheet_ranges.cell(row=row,column=0).value
-            if value:
-                hostlist.append(value)
+            if type(value) == unicode:
+                hostlist.append(value.encode('utf-8'))
             else:
                 end = True
             row += 1
         return hostlist
     def __filter(self,hostlist_file):
         if not hostlist_file:
-            hostlist = ['']
+            return self.tables
         elif hostlist_file[-5:] == '.xlsx':
             hostlist = self.__load_xlsx_hostlist(hostlist_file)
         else:
@@ -122,19 +120,18 @@ class Tables():
                     n = 0
                     while not result:
                         for host in hostlist:
-                            if result == False:
-                                if type(row[n]) == unicode:
-                                    if row[n].find(host.decode('utf-8')) >= 0:
-                                        result = True
-                                        for col in row:
-                                            if type(col) == unicode:
-                                                for val in blocklist:
-                                                    if col.find(val.decode('utf-8')) >= 0:
-                                                        drop = True
-                                        if drop:
-                                            pass
-                                        else:
-                                            table_new.append(row)
+                            if result == False and type(host) == unicode and type(row[n]) == unicode:
+                                if row[n].find(host.decode('utf-8')) >= 0:
+                                    result = True
+                                    for col in row:
+                                        if type(col) == unicode:
+                                            for val in self.blocklist:
+                                                if col.find(val.decode('utf-8')) >= 0:
+                                                    drop = True
+                                    if drop:
+                                        pass
+                                    else:
+                                        table_new.append(row)
                         if n >= len(row) - 1:
                             result = True
                         n += 1
@@ -183,15 +180,12 @@ class Tables():
                     exec "style.%s.%s = eval(argv[n])"%(obj,val)
                     n += 1
         return style
-    def gethtml(self,titles = 'all',host_file = None):
-#        if host_file:
+    def get_html(self,titles = 'all',host_file = None):
         tables = self.__filter(host_file)
-#        else:
-#            tables = self.tables
         output = ''
         if titles == 'all':
             for title in self.titles:
-                output += ('%s\n'%title)
+                output += ('<p>%s</p>\n'%title)
                 output += self.__table2html(tables[title])
                 output += '<br/>\n'
         else:
@@ -200,46 +194,75 @@ class Tables():
                     title = title.decode('utf-8')
                 except:
                     title = title.decode('gb18030')
-                output += ('%s\n'%title)
+                output += ('<p>%s</p>\n'%title)
                 output += self.__table2html(tables[title])
                 output += '<br/>\n'
         return output.encode('utf-8')
-    def getxlsx(self,dest_filename,host_file = None):
-        if host_file:
-            tables = self.__filter(host_file)
-        else:
-            tables = self.tables
+    def get_xlsx(self,dest_filename,host_file = None):
+        tables = self.__filter(host_file)
         wb = Workbook()
         ws = wb.worksheets[0]
-        row_num = 0
+        column_widths = []
         for title in self.titles:
-#            ws.append([title])
-            row_num += 1
-            cell = ws.cell('%s%s'%(get_column_letter(1), row_num))
-            cell.value = title
-            row_num += 1
+            ws.title = title
+            row_num = 0
             for row in tables[title]:
-#                ws.append(row)
                 row_num += 1
                 col_num = 0
-                for col in row:
+                th = False
+                for i, value in enumerate(row):
                     col_num += 1
                     cell = ws.cell('%s%s'%(get_column_letter(col_num), row_num))
-                    cell.value = col
-            row_num += 1
+                    cell.value = value
+                    if value == u'序号':
+                        th = True
+                    if th:
+                        self.__xlsx_setstyle(cell.style,self.XLSXSTYLE_title)
+                    else:
+                        self.__xlsx_setstyle(cell.style,self.XLSXSTYLE)
+                    # count column width
+                    if len(column_widths) > i:
+                        if type(value) == unicode:
+                            if len(value) > column_widths[i]:
+                                column_widths[i] = len(value)
+                        elif type(value) == int:
+                            if len(str(value)) > column_widths[i]:
+                                column_widths[i] = len(str(value))
+                        else:
+                            if 5 > column_widths[i]:
+                                column_widths[i] = 5
+                    else:
+                        if type(value) == unicode:
+                            column_widths.append(len(value))
+                        elif type(value) == int:
+                            column_widths.append(len(str(value)))
+                        else:
+                            column_widths.append(5)
+
+            for i, column_width in enumerate(column_widths):
+                if column_width < 5:
+                    ws.column_dimensions[get_column_letter(i+1)].width = 6
+                elif column_width > 40:
+                    ws.column_dimensions[get_column_letter(i+1)].width = 30
+                else:
+                    ws.column_dimensions[get_column_letter(i+1)].width = column_width
+            ws = wb.create_sheet()
+        wb.worksheets.pop()
+
         wb.save(filename = dest_filename)
 
-def xlsx2html(filename,titles = 'all',host_file = None):
+def get_html(filename,titles = 'all',host_file = None,blacklist = []):
     t = Tables()
     t.load(filename)
-#    t.getxlsx("test.xlsx")
-    return t.gethtml(titles,host_file)
+    t.blacklist = blacklist
+    t.get_xlsx("%s.xlsx"%filename)
+#    return t.get_html(titles,host_file)
 
 if __name__ == "__main__":
     if len(sys.argv) == 4:
-        print xlsx2html(sys.argv[1],sys.argv[2],sys.argv[3])
+        print get_html(sys.argv[1],sys.argv[2],sys.argv[3])
     elif len(sys.argv) == 3:
-        print xlsx2html(sys.argv[1],sys.argv[2])
+        print get_html(sys.argv[1],sys.argv[2])
     else:
         print """Usage:
     readxlsx.py <name>.xlsx all/title1[,title2] [HOSTFILE]
