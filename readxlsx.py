@@ -6,7 +6,7 @@ from openpyxl import Workbook
 from openpyxl.cell import get_column_letter
 import openpyxl.style
 
-blocklist = ['任务计划没有以localadmin账户启动']
+blocklist = []
 
 class Tables():
     def __init__(self):
