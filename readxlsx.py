@@ -1,10 +1,11 @@
 #!/usr/bin/env python2
 # -*- coding: utf-8 -*-
-import sys
+import os,sys
 from openpyxl.reader.excel import load_workbook
 from openpyxl import Workbook
 from openpyxl.cell import get_column_letter
 import openpyxl.style
+from bs4 import BeautifulSoup
 
 blocklist = []
 
@@ -12,6 +13,29 @@ class Tables():
     def __init__(self):
         self.titles = []
         self.tables = {}
+    def load(self,filename):
+        ext = filename[filename.find('.')+1:]
+        if ext == "xlsx":
+            self.load_xlsx(filename)
+        elif ext in ('htm','html'):
+            self.load_html(filename)
+        else:
+            print "error: can load '%s' file!"%ext
+    def load_html(self,html_file):
+        html = file(os.path.realpath(html_file),'r').read().decode('utf-8')
+        soup = BeautifulSoup(html)
+
+        tables = soup.find_all('table')
+        for table in tables:
+            title = table.find_previous('p').get_text()
+            self.titles.append(title)
+            self.tables[title] = []
+            for row in table.find_all('tr'):
+                line = []
+                for val in row.find_all('td'):
+                    line.append(val.get_text())
+                self.tables[title].append(line)
+
     def load_xlsx(self,xlsx_file):
         wb = load_workbook(filename = xlsx_file)
         sheet_ranges = wb.get_active_sheet()
@@ -205,9 +229,9 @@ class Tables():
             row_num += 1
         wb.save(filename = dest_filename)
 
-def xlsx2html(xlsxfile,titles = 'all',host_file = None):
+def xlsx2html(filename,titles = 'all',host_file = None):
     t = Tables()
-    t.load_xlsx(xlsxfile)
+    t.load(filename)
 #    t.getxlsx("test.xlsx")
     return t.gethtml(titles,host_file)
 
