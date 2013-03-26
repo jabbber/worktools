@@ -13,7 +13,8 @@ class Tables():
     def __init__(self):
         self.titles = []
         self.tables = {}
-        self.blocklist = []
+        self.hostlist = []
+        self.blacklist = []
     def load(self,filename):
         ext = filename[filename.find('.')+1:]
         if ext == "xlsx":
@@ -33,9 +34,16 @@ class Tables():
             for row in table.find_all('tr'):
                 line = []
                 for val in row.find_all('td'):
-                    line.append(val.get_text())
-                self.tables[title].append(line)
-
+                    value = val.get_text()
+                    if type(value) == unicode:
+                        value = value.encode('utf-8')
+                    line.append(value)
+                if self.__black_filter(line):
+                    pass
+                elif self.__host_filter(line):
+                    self.tables[title].append(line)
+                else:
+                    pass
     def load_xlsx(self,xlsx_file):
         wb = load_workbook(filename = xlsx_file)
         sheet_ranges = wb.get_active_sheet()
@@ -87,56 +95,49 @@ class Tables():
                 self.tables[th] = worktable
             row += 1
         return 0
-    def __load_xlsx_hostlist(self,xlsx_file):
+    def __load_xlsx_list(self,xlsx_file):
         wb = load_workbook(filename = xlsx_file)
         sheet_ranges = wb.get_active_sheet()
         end = False
         row = 0
-        hostlist = []
+        keylist = []
         while not end:
             value = sheet_ranges.cell(row=row,column=0).value
             if type(value) == unicode:
-                hostlist.append(value.encode('utf-8'))
+                keylist.append(value.encode('utf-8'))
             else:
                 end = True
             row += 1
-        return hostlist
-    def __filter(self,hostlist_file):
-        if not hostlist_file:
-            return self.tables
-        elif hostlist_file[-5:] == '.xlsx':
-            hostlist = self.__load_xlsx_hostlist(hostlist_file)
+        return keylist
+    def load_list(self,list_file):
+        if not list_file:
+            keylist = []
+        elif list_file[-5:] == '.xlsx':
+            keylist = self.__load_xlsx_list(list_file)
         else:
-            hostlist = open(hostlist_file,'r').read().split('\n')[:-1]
-        tables = {}
-        for title in self.titles:
-            table_new = []
-            for row in self.tables[title]:
-                if u'序号' in row:
-                    table_new.append(row)
-                else:
-                    result = False
-                    drop = False
-                    n = 0
-                    while not result:
-                        for host in hostlist:
-                            if result == False and type(host) == unicode and type(row[n]) == unicode:
-                                if row[n].find(host.decode('utf-8')) >= 0:
-                                    result = True
-                                    for col in row:
-                                        if type(col) == unicode:
-                                            for val in self.blocklist:
-                                                if col.find(val.decode('utf-8')) >= 0:
-                                                    drop = True
-                                    if drop:
-                                        pass
-                                    else:
-                                        table_new.append(row)
-                        if n >= len(row) - 1:
-                            result = True
-                        n += 1
-            tables[title] = table_new
-        return tables
+            keylist = open(list_file,'r').read().split('\n')[:-1]
+        return keylist
+    def __filter(self,row,key_list):
+        for value in row:
+            for key in key_list:
+                if type(key) == str and type(value) == str:
+                    if value.find(key) >= 0:
+                        return True
+        return False
+    def __host_filter(self,row):
+        key_list = self.hostlist
+        if key_list == []:
+            return True
+        if '序号' in row:
+            return True
+        else:
+            return self.__filter(row,key_list)
+    def __black_filter(self,row):
+        key_list = self.blacklist
+        if key_list == []:
+            return False
+        else:
+            return self.__filter(row,key_list)
     def __table2html(self,table):
         WIDTH = {'序号':40,
                 }
@@ -144,22 +145,22 @@ class Tables():
         tdstyle = 'style="white-space:nowrap"'
         html = '<table %s>\n'%tablestyle
         for row in table:
-            if row[0] == u'序号':
+            if row[0] == '序号':
                 html += '  <tr>\n'
                 for val in row:
-                    if WIDTH.has_key(val.encode('utf-8')):
-                        width = WIDTH[val.encode('utf-8')]
-                        html += u"<td width=%s ><NOBR><FONT size=2 face=宋体 color=#0909f7><STRONG>%s</STRONG></FONT></NOBR></td>"%(width,val)
+                    if WIDTH.has_key(val):
+                        width = WIDTH[val]
+                        html += "<td width=%s ><NOBR><FONT size=2 face=宋体 color=#0909f7><STRONG>%s</STRONG></FONT></NOBR></td>"%(width,val)
                     else:
-                        html += u"<td width=120 ><NOBR><FONT size=2 face=宋体 color=#0909f7><STRONG>%s</STRONG></FONT></NOBR></td>"%val
+                        html += "<td width=120 ><NOBR><FONT size=2 face=宋体 color=#0909f7><STRONG>%s</STRONG></FONT></NOBR></td>"%val
                 html += '  </tr>\n'
             else:
                 html += '  <tr>\n'
                 for val in row:
-                    html += u"<td style='word-break:break-all' ><FONT size=2 face=宋体  >%s</FONT></td>"%val
+                    html += "<td style='word-break:break-all' ><FONT size=2 face=宋体  >%s</FONT></td>"%val
                 html += '  </tr>\n'
         html += '</table>'
-        return html
+        return html.decode('utf-8')
     def __xlsx_setstyle(self,style,style_string):
         argv = style_string.split(':')
         n = 0
@@ -180,8 +181,8 @@ class Tables():
                     exec "style.%s.%s = eval(argv[n])"%(obj,val)
                     n += 1
         return style
-    def get_html(self,titles = 'all',host_file = None):
-        tables = self.__filter(host_file)
+    def get_html(self,titles = 'all'):
+        tables = self.tables
         output = ''
         if titles == 'all':
             for title in self.titles:
@@ -198,14 +199,19 @@ class Tables():
                 output += self.__table2html(tables[title])
                 output += '<br/>\n'
         return output.encode('utf-8')
-    def get_xlsx(self,dest_filename,host_file = None):
-        tables = self.__filter(host_file)
+    def get_xlsx(self,dest_filename):
+        tables = self.tables
         wb = Workbook()
         ws = wb.worksheets[0]
+        row_num = 0
         column_widths = []
         for title in self.titles:
-            ws.title = title
-            row_num = 0
+#            ws.title = title
+            print title
+            row_num += 1
+            cell = ws.cell('%s%s'%(get_column_letter(1), row_num))
+            cell.value = title
+            row_num += 1
             for row in tables[title]:
                 row_num += 1
                 col_num = 0
@@ -214,12 +220,12 @@ class Tables():
                     col_num += 1
                     cell = ws.cell('%s%s'%(get_column_letter(col_num), row_num))
                     cell.value = value
-                    if value == u'序号':
-                        th = True
-                    if th:
-                        self.__xlsx_setstyle(cell.style,self.XLSXSTYLE_title)
-                    else:
-                        self.__xlsx_setstyle(cell.style,self.XLSXSTYLE)
+#                    if value == u'序号':
+#                        th = True
+#                    if th:
+#                        self.__xlsx_setstyle(cell.style,self.XLSXSTYLE_title)
+#                    else:
+#                        self.__xlsx_setstyle(cell.style,self.XLSXSTYLE)
                     # count column width
                     if len(column_widths) > i:
                         if type(value) == unicode:
@@ -238,34 +244,40 @@ class Tables():
                             column_widths.append(len(str(value)))
                         else:
                             column_widths.append(5)
+            row_num += 1
+        for i, column_width in enumerate(column_widths):
+            if column_width < 5:
+                ws.column_dimensions[get_column_letter(i+1)].width = 6
+            elif column_width > 40:
+                ws.column_dimensions[get_column_letter(i+1)].width = 30
+            else:
+                ws.column_dimensions[get_column_letter(i+1)].width = column_width
 
-            for i, column_width in enumerate(column_widths):
-                if column_width < 5:
-                    ws.column_dimensions[get_column_letter(i+1)].width = 6
-                elif column_width > 40:
-                    ws.column_dimensions[get_column_letter(i+1)].width = 30
-                else:
-                    ws.column_dimensions[get_column_letter(i+1)].width = column_width
-            ws = wb.create_sheet()
-        wb.worksheets.pop()
+#            ws = wb.create_sheet()
+#        wb.worksheets.pop()
 
         wb.save(filename = dest_filename)
 
-def get_html(filename,titles = 'all',host_file = None,blacklist = []):
+def get_html(filename,titles = 'all',host_file = None,blacklist = None):
     t = Tables()
+    if host_file:
+        t.hostlist = t.load_list(host_file)
+    if blacklist:
+        t.blacklist = t.load_list(blacklist)
     t.load(filename)
-    t.blacklist = blacklist
-    t.get_xlsx("%s.xlsx"%filename)
-#    return t.get_html(titles,host_file)
+#    t.get_xlsx("%s.xlsx"%filename)
+    return t.get_html(titles)
 
 if __name__ == "__main__":
-    if len(sys.argv) == 4:
+    if len(sys.argv) == 5:
+        print get_html(sys.argv[1],sys.argv[2],sys.argv[3],sys.argv[4])
+    elif len(sys.argv) == 4:
         print get_html(sys.argv[1],sys.argv[2],sys.argv[3])
     elif len(sys.argv) == 3:
         print get_html(sys.argv[1],sys.argv[2])
     else:
         print """Usage:
-    readxlsx.py <name>.xlsx all/title1[,title2] [HOSTFILE]
+    readxlsx.py <FILE> all/title1[,title2] [HOST_FILE] [Blacklist_FILE]
 
-HOSTFILE can be an unix text file or xlsx file.
+FILE can be an unix text file or xlsx file.
         """
