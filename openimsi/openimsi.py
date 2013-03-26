@@ -1,6 +1,7 @@
 #!/usr/bin/env python2
 # -*- coding: utf-8 -*-
 import os,sys
+import traceback
 from openpyxl.reader.excel import load_workbook
 from openpyxl import Workbook
 from openpyxl.cell import get_column_letter
@@ -8,21 +9,29 @@ import openpyxl.style
 from bs4 import BeautifulSoup
 
 class Tables():
-    XLSXSTYLE = "'Calibri':10:False:False:False:False:'none':False:'FF000000':'none':0:'FFFFFFFF':'FF000000':'medium':'FF000000':'medium':'FF000000':'medium':'FF000000':'medium':'FF000000':'none':'FF000000':0:'none':'FF000000':'none':'FF000000':'none':'FF000000':'none':'FF000000':'none':'FF000000':'general':'center':0:True:False:0:'General':0:'inherit':'inherit'"
-    XLSXSTYLE_title = "'Calibri':10:True:False:False:False:'none':False:'FF0000FF':'none':0:'FFFFFFFF':'FF000000':'medium':'FF000000':'medium':'FF000000':'medium':'FF000000':'medium':'FF000000':'none':'FF000000':0:'none':'FF000000':'none':'FF000000':'none':'FF000000':'none':'FF000000':'none':'FF000000':'general':'center':0:False:False:0:'General':0:'inherit':'inherit'"
     def __init__(self):
         self.titles = []
         self.tables = {}
         self.hostlist = []
         self.blacklist = []
     def load(self,filename):
-        ext = filename[filename.find('.')+1:]
-        if ext == "xlsx":
-            self.load_xlsx(filename)
-        elif ext in ('htm','html'):
-            self.load_html(filename)
+        name, ext = os.path.splitext(filename)
+        if ext == ".xlsx":
+            try:
+                self.load_xlsx(filename)
+            except:
+                print traceback.print_exc()
+                return False
+        elif ext in ('.htm','.html'):
+            try:
+                self.load_html(filename)
+            except:
+                print traceback.print_exc()
+                return False
         else:
-            print "error: can load '%s' file!"%ext
+            print "error: can load %s!"%filename
+            return False
+        return True
     def load_html(self,html_file):
         html = file(os.path.realpath(html_file),'r').read().decode('utf-8')
         soup = BeautifulSoup(html)
@@ -79,13 +88,13 @@ class Tables():
                     else:
                         self.titles.append(th)
                         self.tables[th] = worktable
-                    th = col[0]
+                    th = col[0].decode('utf-8')
                     worktable = []
             elif len(col) > 1:
                 if not th:
                     th = ""
                     worktable = []
-                worktable.append(col)
+                worktable.append(col.decode('utf-8'))
                 row_empty = 0
             else:
                 row_empty += 1
