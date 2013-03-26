@@ -235,26 +235,20 @@ class Tables():
             row_num += 1
             cell = ws.cell('%s%s'%(get_column_letter(1), row_num))
             cell.value = title
+            cell.style.font.size = 13
             row_num += 1
             for row in tables[title]:
                 row_num += 1
                 col_num = 0
                 th = False
                 for i, value in enumerate(row):
-                    col_num += 1
-                    cell = ws.cell('%s%s'%(get_column_letter(col_num), row_num))
-                    cell.value = value
-#                    if value == u'序号':
-#                        th = True
-#                    if th:
-#                        self.__xlsx_setstyle(cell.style,self.XLSXSTYLE_title)
-#                    else:
-#                        self.__xlsx_setstyle(cell.style,self.XLSXSTYLE)
                     # count column width
                     if type(value) == str:
                         l = len(value.decode('utf-8'))
                         if l == len(value):
-                            l = l/2 + 1
+                            pass
+                        else:
+                            l = l*2
                     elif type(value) == int:
                         l = len(str(value))
                     else:
@@ -264,6 +258,20 @@ class Tables():
                                 column_widths[i] = l
                     else:
                         column_widths.append(l)
+
+                    col_num += 1
+                    cell = ws.cell('%s%s'%(get_column_letter(col_num), row_num))
+                    cell.value = value
+                    cell.style.font.size = 10
+                    for key in ('left','right','top','bottom'):
+                        exec "cell.style.borders.%s.border_style = 'medium'"%key
+                    if value == '序号':
+                        th = True
+                    if th:
+#                        self.__xlsx_setstyle(cell.style,self.XLSXSTYLE_title)
+                        cell.style.font.bold = True
+                    else:
+                        cell.style.alignment.wrap_text = True
             row_num += 1
         for i, column_width in enumerate(column_widths):
             if column_width < 6:
@@ -285,7 +293,6 @@ def get_html(filename,titles = 'all',host_file = None,blacklist = None):
     if blacklist:
         t.blacklist = t.load_list(blacklist)
     t.load(filename)
-#    t.get_xlsx("%s.xlsx"%filename)
     return t.get_html(titles)
 
 if __name__ == "__main__":
