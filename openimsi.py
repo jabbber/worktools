@@ -211,7 +211,7 @@ class Tables():
         output = ''
         if titles == 'all':
             for title in self.titles:
-                output += ('<p>%s</p>\n'%title)
+                output += ('<p><font color="#38f709" size="4">%s</font></p>\n'%title)
                 output += self.__table2html(tables[title])
                 output += '<br/>\n'
         else:
@@ -232,7 +232,6 @@ class Tables():
         column_widths = []
         for title in self.titles:
 #            ws.title = title
-            print title
             row_num += 1
             cell = ws.cell('%s%s'%(get_column_letter(1), row_num))
             cell.value = title
@@ -252,23 +251,19 @@ class Tables():
 #                    else:
 #                        self.__xlsx_setstyle(cell.style,self.XLSXSTYLE)
                     # count column width
-                    if len(column_widths) > i:
-                        if type(value) == unicode:
-                            if len(value) > column_widths[i]:
-                                column_widths[i] = len(value)
-                        elif type(value) == int:
-                            if len(str(value)) > column_widths[i]:
-                                column_widths[i] = len(str(value))
-                        else:
-                            if 5 > column_widths[i]:
-                                column_widths[i] = 5
+                    if type(value) == str:
+                        l = len(value.decode('utf-8'))
+                        if l == len(value):
+                            l = l/2 + 1
+                    elif type(value) == int:
+                        l = len(str(value))
                     else:
-                        if type(value) == unicode:
-                            column_widths.append(len(value))
-                        elif type(value) == int:
-                            column_widths.append(len(str(value)))
-                        else:
-                            column_widths.append(5)
+                        l = len(value)
+                    if len(column_widths) > i:
+                        if l > column_widths[i]:
+                                column_widths[i] = l
+                    else:
+                        column_widths.append(l)
             row_num += 1
         for i, column_width in enumerate(column_widths):
             if column_width < 6:
