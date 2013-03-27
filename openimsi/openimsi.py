@@ -37,7 +37,10 @@ class Tables():
         soup = BeautifulSoup(html)
         tables = soup.find_all('table')
         for table in tables:
-            title = table.find_previous('p').get_text()
+            try:
+                title = table.find_previous('p').get_text()
+            except:
+                title = ''
             self.titles.append(title)
             self.tables.append([])
             for row in table.find_all('tr'):
