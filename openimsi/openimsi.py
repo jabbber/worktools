@@ -14,6 +14,9 @@ class Tables():
         self.tables = []
         self.hostlist = []
         self.blacklist = []
+    def clear(self):
+        self.titles = []
+        self.tables = []
     def load(self,filename):
         name, ext = os.path.splitext(filename)
         if ext == ".xlsx":

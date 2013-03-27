@@ -34,6 +34,7 @@ def convert(run_dir,src_dir,dist_dir):
             name,ext = os.path.splitext(file_name)
             print "convert %s%s"%(name,ext)
             output_file = '%s/%s'%(dist_dir,name)
+            t.clear()
             result = t.load('%s/%s'%(src_dir, file_name))
             if result:
                 if OUT_TYPE == 'html':
