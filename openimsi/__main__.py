@@ -21,15 +21,15 @@ def module_path():
 
     if we_are_frozen():
         return os.path.dirname(unicode(sys.executable, sys.getfilesystemencoding( )))
-
+    
     return os.path.dirname(unicode(__file__, sys.getfilesystemencoding( )))
+#    return os.path.split(os.path.realpath(unicode(__file__, sys.getfilesystemencoding( ))))[0]    
 
 def convert(run_dir,src_dir,dist_dir):
     print 'Start convert %s:'%src_dir
     for file_name in os.listdir(src_dir):
-        if os.path.isdir(file_name):
+        if os.path.isdir("%s/%s"%(src_dir, file_name)):
             pass
-
         else:
             name,ext = os.path.splitext(file_name)
             print "convert %s%s"%(name,ext)
@@ -48,7 +48,8 @@ def convert(run_dir,src_dir,dist_dir):
 if __name__ == '__main__':
     #初始化转换器参数
 #    run_dir = os.path.split(os.path.realpath(__file__))[0]
-    run_dir = module_path()
+    run_dir = os.path.realpath(module_path())
+    print run_dir
     t = openimsi.Tables()
 
     host_list = '%s/%s'%(run_dir,HOST_LIST)
@@ -85,13 +86,13 @@ if __name__ == '__main__':
                 work_dirs.append([src_dir, dist_dir])
                 print "%s will be convert"%src_dir
 
-    if raw_input("\nPress Enter to Continue ") == '':
-        for work_dir in work_dirs:
-                os.mkdir(work_dir[1])
-                convert(run_dir,work_dir[0],work_dir[1])
+#    if raw_input("\nPress Enter to Continue ") == '':
+    for work_dir in work_dirs:
+            os.mkdir(work_dir[1])
+            convert(run_dir,work_dir[0],work_dir[1])
 
-    else:
-        exit()
+#    else:
+#        exit()
 
     print 'All dir convert Complite!\n'
     raw_input("Press Enter to Exit. ")

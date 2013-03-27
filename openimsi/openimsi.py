@@ -11,7 +11,7 @@ from bs4 import BeautifulSoup
 class Tables():
     def __init__(self):
         self.titles = []
-        self.tables = {}
+        self.tables = []
         self.hostlist = []
         self.blacklist = []
     def load(self,filename):
@@ -39,7 +39,7 @@ class Tables():
         for table in tables:
             title = table.find_previous('p').get_text()
             self.titles.append(title)
-            self.tables[title] = []
+            self.tables.append([])
             for row in table.find_all('tr'):
                 line = []
                 for val in row.find_all('td'):
@@ -50,7 +50,7 @@ class Tables():
                 if self.__black_filter(line):
                     pass
                 elif self.__host_filter(line):
-                    self.tables[title].append(line)
+                    self.tables[-1].append(line)
                 else:
                     pass
     def load_xlsx(self,xlsx_file):
@@ -101,7 +101,7 @@ class Tables():
             if row_empty >= row_max_empty:
                 end = True
                 self.titles.append(th)
-                self.tables[th] = worktable
+                self.tables.append(worktable)
             row += 1
         return 0
     def __load_xlsx_list(self,xlsx_file):
@@ -219,9 +219,9 @@ class Tables():
         tables = self.tables
         output = ''
         if titles == 'all':
-            for title in self.titles:
+            for i, title in enumerate(self.titles):
                 output += ('<p><font color="#38f709" size="4">%s</font></p>\n'%title)
-                output += self.__table2html(tables[title])
+                output += self.__table2html(tables[i])
                 output += '<br/>\n'
         else:
             for title in titles.split(','):
@@ -230,8 +230,15 @@ class Tables():
                 except:
                     title = title.decode('gb18030')
                 output += ('<p>%s</p>\n'%title)
-                output += self.__table2html(tables[title])
-                output += '<br/>\n'
+                n = 0
+                finded = []
+                for value in self.titles:
+                    if value == title:
+                        finded.append(n)
+                    n += 1
+                for num in finded:
+                    output += self.__table2html(tables[num])
+                    output += '<br/>\n'
         return output.encode('utf-8')
     def get_xlsx(self,dest_filename):
         tables = self.tables
@@ -239,14 +246,14 @@ class Tables():
         ws = wb.worksheets[0]
         row_num = 0
         column_widths = []
-        for title in self.titles:
+        for title_num, title in enumerate(self.titles):
 #            ws.title = title
             row_num += 1
             cell = ws.cell('%s%s'%(get_column_letter(1), row_num))
             cell.value = title
             cell.style.font.size = 13
             row_num += 1
-            for row in tables[title]:
+            for row in tables[title_num]:
                 row_num += 1
                 col_num = 0
                 th = False
