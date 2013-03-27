@@ -41,7 +41,7 @@ class Tables():
         tables = soup.find_all('table')
         for table in tables:
             try:
-                title = table.find_previous('p').get_text()
+                title = table.find_previous('p').get_text().encode('utf-8')
             except:
                 title = ''
             self.titles.append(title)
@@ -76,6 +76,8 @@ class Tables():
             while not col_end:
                 value = sheet_ranges.cell(row=row,column=len(col)).value
                 if value:
+                    if type(value) == unicode:
+                        value = value.encode('utf-8')
                     col_empty = 0
                 else:
                     value = ''
@@ -93,14 +95,19 @@ class Tables():
                         pass
                     else:
                         self.titles.append(th)
-                        self.tables[th] = worktable
-                    th = col[0].decode('utf-8')
+                        self.tables.append(worktable)
+                    th = col[0]
                     worktable = []
             elif len(col) > 1:
                 if not th:
                     th = ""
                     worktable = []
-                worktable.append(col.decode('utf-8'))
+                if self.__black_filter(col):
+                    pass
+                elif self.__host_filter(col):
+                    worktable.append(col)
+                else:
+                    pass
                 row_empty = 0
             else:
                 row_empty += 1
@@ -200,7 +207,7 @@ class Tables():
                     html += "<td style='word-break:break-all' ><FONT size=2 face=宋体  >%s</FONT></td>"%val
                 html += '  </tr>\n'
         html += '</table>'
-        return html.decode('utf-8')
+        return html
     def __xlsx_setstyle(self,style,style_string):
         argv = style_string.split(':')
         n = 0
@@ -231,10 +238,10 @@ class Tables():
                 output += '<br/>\n'
         else:
             for title in titles.split(','):
-                try:
-                    title = title.decode('utf-8')
-                except:
-                    title = title.decode('gb18030')
+#                try:
+#                    title = title.decode('utf-8')
+#                except:
+#                    title = title.decode('gb18030')
                 output += ('<p>%s</p>\n'%title)
                 n = 0
                 finded = []
@@ -245,7 +252,7 @@ class Tables():
                 for num in finded:
                     output += self.__table2html(tables[num])
                     output += '<br/>\n'
-        return output.encode('utf-8')
+        return output
     def get_xlsx(self,dest_filename):
         tables = self.tables
         wb = Workbook()
