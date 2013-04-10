@@ -143,7 +143,7 @@ class Tables():
         for value in row:
             for key in key_list:
                 if type(key) == str and type(value) == str:
-                    if value.find(key) >= 0:
+                    if value.find(key) >= 0 or value.find(key.upper()) >=0:
                         return True
         return False
     def __host_filter(self,row):
