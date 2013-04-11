@@ -15,9 +15,13 @@ class Tables():
         self.hostlist = []
         self.blacklist = []
     def clear(self):
+        """clear the data have been loaded.
+        """
         self.titles = []
         self.tables = []
     def load(self,filename):
+        """load data from given file path,the file can be .xlsx or .htm(l)
+        """
         name, ext = os.path.splitext(filename)
         if ext == ".xlsx":
             try:
@@ -132,6 +136,8 @@ class Tables():
             row += 1
         return keylist
     def load_list(self,list_file):
+        """load a list from a text or xlsx file,return python list type.
+        """
         if not list_file:
             keylist = []
         elif list_file[-5:] == '.xlsx':
@@ -229,6 +235,8 @@ class Tables():
                     n += 1
         return style
     def get_html(self,titles = 'all'):
+        """return the tables you given titles use html table format,default is all tables.
+        """
         tables = self.tables
         output = ''
         if titles == 'all':
@@ -254,6 +262,8 @@ class Tables():
                     output += '<br/>\n'
         return output
     def get_xlsx(self,dest_filename):
+        """create a .xlsx file have all data have been loaded to you given path and filename.
+        """
         tables = self.tables
         wb = Workbook()
         ws = wb.worksheets[0]
