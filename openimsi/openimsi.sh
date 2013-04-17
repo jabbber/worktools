@@ -12,14 +12,10 @@ to:     
 刘冰 <liubing@abchina.com>,
 刘建华 <liujianhua@abchina.com>,
 v-yuqu <v-yuqu@microsoft.com>,
-15821906542 <15821906542@139.com>,
-18221668349 <18221668349@139.com>,
+陈少春 <18221668349@139.com>,
+杜晋申 <jason.du@ce-service.com.cn>,
 钟聪敏 <zcm@skybility.com>,
 赵忠亮 <zhaozhongliang@skybility.com>
-cc:  
-张春 <zhangchun@abchina.com>,
-张乾尊 <zhangqianzun@abchina.com>,
-谢鹏 <xiepeng@abchina.com>
 subject:
 运维三组openimis报表检查汇总--xxxxxxxx
 MAIL
