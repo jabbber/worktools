@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 import os,sys
 import traceback
+import re
 from openpyxl.reader.excel import load_workbook
 from openpyxl import Workbook
 from openpyxl.cell import get_column_letter
@@ -14,6 +15,7 @@ class Tables():
         self.tables = []
         self.hostlist = []
         self.blacklist = []
+        self.project_find = None
     def clear(self):
         """clear the data have been loaded.
         """
@@ -143,7 +145,8 @@ class Tables():
         elif list_file[-5:] == '.xlsx':
             keylist = self.__load_xlsx_list(list_file)
         else:
-            keylist = open(list_file,'r').read().split('\n')[:-1]
+            with open(list_file) as list_f:
+                keylist = [line.strip() for line in list_f if line.strip() != '']
         return keylist
     def __filter(self,row,key_list):
         for value in row:
@@ -152,7 +155,23 @@ class Tables():
                     if value.find(key) >= 0 or value.find(key.upper()) >=0:
                         return True
         return False
+    def load_project_list(self,list_file):
+        self.__project_find = '''
+            HQs(\w{3})?                         #Host type
+            [_|-]?                              #split sign
+            (''' + '|'.join(self.load_list(list_file)) +''')      #project name
+            [_|-]?                              #split sign
+            (\d|\w\d{0,2}|\w{3})                #number
+        '''
+    def __host_search(self,string):
+        if re.search(self.__project_find, string, re.VERBOSE):
+            return True
+        else:
+            return False
     def __host_filter(self,row):
+        if self.project_find:
+            return self.__host_search(row)
+
         key_list = self.hostlist
         if key_list == []:
             return True
