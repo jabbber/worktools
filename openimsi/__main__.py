@@ -8,7 +8,6 @@ BLACK_LIST = 'blacklist'
 SOURCE_DIR = 'src'
 DIST_DIR = 'target'
 OUT_TYPE = 'xlsx'
-PROJECT_LIST = 'project_list'
 
 def we_are_frozen():
     """Returns whether we are frozen via py2exe.
@@ -54,29 +53,17 @@ if __name__ == '__main__':
     print run_dir
     t = openimsi.Tables()
 
-    project_list = '%s/%s'%(run_dir,PROJECT_LIST)
-    project_find = False
+    host_list = '%s/%s'%(run_dir,HOST_LIST)
     for ext in ('.txt','.xlsx'):
-        if os.path.isfile(project_list + ext):
-            print "load Project List from %s%s"%(project_list,ext)
-            t.load_project_list(project_list + ext)
-            project_find = True
+        if os.path.isfile(host_list + ext):
+            print "load Host List from %s%s"%(host_list,ext)
+            t.hostlist = t.load_list(host_list + ext)
             break
 
-    if project_find:
-        pass
-    else:
-        host_list = '%s/%s'%(run_dir,HOST_LIST)
-        for ext in ('.txt','.xlsx'):
-            if os.path.isfile(host_list + ext):
-                print "load Host List from %s%s"%(host_list,ext)
-                t.hostlist = t.load_list(host_list + ext)
-                break
-
-        if t.hostlist == []:
-            print 'Please give a useful hostlist file like hostlist.txt or hostlist.xlsx in script dir!'
-            raw_input("Press Enter to Exit. ")
-            sys.exit(1)
+    if t.hostlist == []:
+        print 'Please give a useful hostlist file like hostlist.txt or hostlist.xlsx in script dir!'
+        raw_input("Press Enter to Exit. ")
+        sys.exit(1)
 
     black_list = '%s/%s'%(run_dir,BLACK_LIST)
     for ext in ('.txt','.xlsx'):
