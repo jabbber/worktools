@@ -44,7 +44,10 @@ class Tables():
     def load_html(self,html_file):
         html = file(os.path.realpath(html_file),'r').read().decode('utf-8')
         soup = BeautifulSoup(html)
-        tables = soup.html.body.find_all('table',recursive=False)
+        if soup.html:
+            tables = soup.html.body.find_all('table',recursive=False)
+        else:
+            tables = soup.find_all('table',recursive=False)
         for table in tables:
             try:
                 title = table.find_previous('p').get_text().encode('utf-8')
