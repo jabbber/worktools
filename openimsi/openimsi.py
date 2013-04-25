@@ -44,7 +44,7 @@ class Tables():
     def load_html(self,html_file):
         html = file(os.path.realpath(html_file),'r').read().decode('utf-8')
         soup = BeautifulSoup(html)
-        tables = soup.find_all('table')
+        tables = soup.html.body.find_all('table',recursive=False)
         for table in tables:
             try:
                 title = table.find_previous('p').get_text().encode('utf-8')
@@ -52,9 +52,9 @@ class Tables():
                 title = ''
             self.titles.append(title)
             self.tables.append([])
-            for row in table.find_all('tr'):
+            for row in table.find_all('tr',recursive=False):
                 line = []
-                for val in row.find_all('td'):
+                for val in row.find_all('td',recursive=False):
                     value = val.get_text()
                     if type(value) == unicode:
                         value = value.encode('utf-8')
@@ -175,7 +175,7 @@ class Tables():
         key_list = self.hostlist
         if key_list == []:
             return True
-        if '序号' in row:
+        if '序号' == row[0]:
             return True
         else:
             return self.__filter(row,key_list)
