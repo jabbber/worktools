@@ -13,9 +13,9 @@ to:     
 刘建华 <liujianhua@abchina.com>,
 v-yuqu <v-yuqu@microsoft.com>,
 陈少春 <18221668349@139.com>,
-杜晋申 <jason.du@ce-service.com.cn>,
 钟聪敏 <zcm@skybility.com>,
-赵忠亮 <zhaozhongliang@skybility.com>
+赵忠亮 <zhaozhongliang@skybility.com>,
+蒋士竹 <jsz@skybility.com>
 subject:
 运维三组openimis报表检查汇总--xxxxxxxx
 MAIL

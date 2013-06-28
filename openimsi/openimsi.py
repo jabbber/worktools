@@ -272,7 +272,7 @@ class Tables():
 #                    title = title.decode('utf-8')
 #                except:
 #                    title = title.decode('gb18030')
-                output += ('<p>%s</p>\n'%title)
+                output += ('%s<br/>\n'%title)
                 n = 0
                 finded = []
                 for value in self.titles:
