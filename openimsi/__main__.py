@@ -39,7 +39,7 @@ def create_report(dist_dir):
         try:
             filename = glob.glob(os.path.join(dist_dir,fname.decode('utf-8')))[0]
         except IndexError:
-            print "Warning: No found fname,skip it in the report."
+            print "Warning: No found %s,skip it in the report."%fname.decode('utf-8')
             filename = None
         if filename:
             html = openimsi.get_html(filename,tname)
@@ -53,7 +53,7 @@ def create_report(dist_dir):
                 output += html
             else:
                 pass
-    with open(os.path.join(dist_dir,'运维三组openimis报表检查汇总--.html'),'w+') as report_file:
+    with open(os.path.join(dist_dir,'运维三组openimis报表检查汇总--.html'.decode('utf-8')),'w+') as report_file:
         report_file.write(output)
 
 def convert(src_dir,dist_dir):
@@ -111,15 +111,17 @@ if __name__ == '__main__':
             dist_dir = os.path.join(src_dir,DIST_DIR)
             if os.path.isdir(dist_dir):
                 print "skip %s"%src_dir
+                work_dirs.append([src_dir, dist_dir])
             elif os.path.isfile("%s/__init__.py"%src_dir):
                 print "skip %s"%src_dir
+                work_dirs.append([src_dir, dist_dir])
             else:
                 work_dirs.append([src_dir, dist_dir])
                 print "%s will be convert"%src_dir
 
     for work_dir in work_dirs:
-        os.mkdir(work_dir[1])
-        convert(work_dir[0],work_dir[1])
+#        os.mkdir(work_dir[1])
+#        convert(work_dir[0],work_dir[1])
         create_report(work_dir[1])
 
     print 'All dir convert Complite!\n'
