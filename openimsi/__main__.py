@@ -37,7 +37,7 @@ def create_report(dist_dir):
     count = 0
     for (head,fname,tname) in CARE_LIST:
         try:
-            filename = glob.glob(os.path.join(dist_dir,fname))[0]
+            filename = glob.glob(os.path.join(dist_dir,fname.decode('utf-8')))[0]
         except IndexError:
             print "Warning: No found fname,skip it in the report."
             filename = None
@@ -111,10 +111,8 @@ if __name__ == '__main__':
             dist_dir = os.path.join(src_dir,DIST_DIR)
             if os.path.isdir(dist_dir):
                 print "skip %s"%src_dir
-
             elif os.path.isfile("%s/__init__.py"%src_dir):
                 print "skip %s"%src_dir
-
             else:
                 work_dirs.append([src_dir, dist_dir])
                 print "%s will be convert"%src_dir
