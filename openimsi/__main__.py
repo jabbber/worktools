@@ -116,8 +116,8 @@ if __name__ == '__main__':
                 print "skip %s"%src_dir
 
             else:
-            work_dirs.append([src_dir, dist_dir])
-            print "%s will be convert"%src_dir
+                work_dirs.append([src_dir, dist_dir])
+                print "%s will be convert"%src_dir
 
     for work_dir in work_dirs:
         os.mkdir(work_dir[1])
