@@ -45,7 +45,10 @@ def create_report(dist_dir):
             filename = None
         if filename:
             if tname == "分区日常检查异常明细-未备注/未处理":
-                data = int(dist_dir.split('/')[-2])
+                try:
+                    data = int(dist_dir.split('/')[-2])
+                except:
+                    data = int(dist_dir.split('\\')[-2])
                 maxtry = 10
                 while maxtry > 0:
                     maxtry -= 1
@@ -84,7 +87,7 @@ def create_report(dist_dir):
                 pass
     with open(os.path.join(dist_dir,'运维三组openimis报表检查汇总--.html'.decode('utf-8')),'w+') as report_file:
         report_file.write(output)
-    print "Create 运维三组openimis报表检查汇总--.html"
+    print "Create mail file.html"
 
 def convert(src_dir,dist_dir):
     print 'Start convert %s:'%src_dir
@@ -161,7 +164,6 @@ if __name__ == '__main__':
                 create_report(dist_dir)
             elif os.path.isfile("%s/__init__.py"%src_dir):
                 print "skip %s"%src_dir
-                create_report(dist_dir)
             else:
                 work_dirs.append([src_dir, dist_dir])
                 print "%s will be convert"%src_dir
