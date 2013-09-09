@@ -5,7 +5,7 @@ import sys
 import openimsi
 
 
-def getTables(table_file):
+def getTables(table_file,title):
     tables = openimsi.Tables()
     tables.load(table_file)
     for i,value in enumerate(tables.titles):
@@ -72,10 +72,17 @@ def table2html(table,filter_set):
     html += '</table>'
     return html
 
+def openimsiDiff(file1, file2):
+    title = '分区日常检查异常明细-未备注/未处理'
+    table1 = getTables(file1,title)
+    table2 = getTables(file2,title)
+    return table2html(table1, genDiffSet(table1,table2))
+
 if __name__ == '__main__':
     FILE1 = sys.argv[1]
     FILE2 = sys.argv[2]
     title = '分区日常检查异常明细-未备注/未处理'
-    table1 = getTables(FILE1)
-    table2 = getTables(FILE2)
+    table1 = getTables(FILE1,title)
+    table2 = getTables(FILE2,title)
     print table2html(table1, genDiffSet(table1,table2))
+

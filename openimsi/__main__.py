@@ -42,7 +42,10 @@ def create_report(dist_dir):
             print "Warning: No found %s,skip it in the report."%fname.decode('utf-8')
             filename = None
         if filename:
-            html = openimsi.get_html(filename,tname)
+            if tname == "分区日常检查异常明细-未备注/未处理":
+                pass
+            else:
+                html = openimsi.get_html(filename,tname)
             soup = openimsi.BeautifulSoup(html)
             if len(soup.find_all('tr')) > 1:
                 count += 1
@@ -78,10 +81,24 @@ def convert(src_dir,dist_dir):
 
 
 if __name__ == '__main__':
+    if sys.argv[1] in ('-h', '--help'):
+        print """usage:
+    <-d|--diff> NewFile OldFile      find different in NewFile. 
+        """
+        sys.exit(0)
+
     #初始化转换器参数
 #    run_dir = os.path.split(os.path.realpath(__file__))[0]
     run_dir = os.path.realpath(module_path())
-    print run_dir
+#    print run_dir
+
+    if sys.argv[1] in ('-d', '--diff'):
+        import tableDiff
+        html = tableDiff.openimsiDiff(sys.argv[2], sys.argv[3])
+        open('%s/diff.html'%run_dir,'w').write(html)
+        print 'output to %s/diff.html\n'%run_dir
+        sys.exit(0)
+
     t = openimsi.Tables()
 
     host_list = '%s/%s'%(run_dir,HOST_LIST)
