@@ -42,10 +42,10 @@ def create_report(dist_dir):
             print "Warning: No found %s,skip it in the report."%fname.decode('utf-8')
             filename = None
         if filename:
-            if tname == "分区日常检查异常明细-未备注/未处理":
-                pass
-            else:
-                html = openimsi.get_html(filename,tname)
+#            if tname == "分区日常检查异常明细-未备注/未处理":
+#                pass
+#            else:
+            html = openimsi.get_html(filename,tname)
             soup = openimsi.BeautifulSoup(html)
             if len(soup.find_all('tr')) > 1:
                 count += 1
@@ -130,17 +130,17 @@ if __name__ == '__main__':
             dist_dir = os.path.join(src_dir,DIST_DIR)
             if os.path.isdir(dist_dir):
                 print "skip %s"%src_dir
-                work_dirs.append([src_dir, dist_dir])
+#                work_dirs.append([src_dir, dist_dir])
             elif os.path.isfile("%s/__init__.py"%src_dir):
                 print "skip %s"%src_dir
-                work_dirs.append([src_dir, dist_dir])
+#                work_dirs.append([src_dir, dist_dir])
             else:
                 work_dirs.append([src_dir, dist_dir])
                 print "%s will be convert"%src_dir
 
     for work_dir in work_dirs:
-#        os.mkdir(work_dir[1])
-#        convert(work_dir[0],work_dir[1])
+        os.mkdir(work_dir[1])
+        convert(work_dir[0],work_dir[1])
         create_report(work_dir[1])
 
     print 'All dir convert Complite!\n'
