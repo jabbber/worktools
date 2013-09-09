@@ -81,6 +81,8 @@ def convert(src_dir,dist_dir):
 
 
 if __name__ == '__main__':
+    if len(sys.argv) == 1:
+        sys.argv.append('')
     if sys.argv[1] in ('-h', '--help'):
         print """usage:
     <-d|--diff> NewFile OldFile      find different in NewFile. 
