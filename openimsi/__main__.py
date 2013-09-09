@@ -33,6 +33,8 @@ def module_path():
 #    return os.path.split(os.path.realpath(unicode(__file__, sys.getfilesystemencoding( ))))[0] 
 
 def create_report(dist_dir):
+    if os.path.isfile(os.path.join(dist_dir,'运维三组openimis报表检查汇总--.html'.decode('utf-8'))):
+        return 0
     output = '大家好！<br><p class="MsoNormal" align="left" style="line-height:12.75pt;text-indent:24pt">附件是昨天的openimis报表的汇总，其中有以下问题需要各位系统管理员关注下，其中有些数据可能与openimis未同步，还是请管理员确认一下，以免出错。</p>'
     count = 0
     for (head,fname,tname) in CARE_LIST:
@@ -42,10 +44,34 @@ def create_report(dist_dir):
             print "Warning: No found %s,skip it in the report."%fname.decode('utf-8')
             filename = None
         if filename:
-#            if tname == "分区日常检查异常明细-未备注/未处理":
-#                pass
-#            else:
-            html = openimsi.get_html(filename,tname)
+            if tname == "分区日常检查异常明细-未备注/未处理":
+                data = int(dist_dir.split('/')[-2])
+                maxtry = 10
+                while maxtry > 0:
+                    maxtry -= 1
+                    if data%100 == 1:
+                        data -= 69
+                    else:
+                        data -= 1
+                    yesterday_dir = os.path.realpath('%s/../../%s/target'%(dist_dir,data))
+                    try:
+                        yesterfile = glob.glob(os.path.join(yesterday_dir,fname.decode('utf-8')))[0]
+                    except IndexError:
+                        yesterfile = None
+                    if yesterfile:
+                        break
+                    if maxtry == 0:
+                        yesterfile = None
+                if yesterfile:
+                    import tableDiff
+                    table1 = tableDiff.getTables(filename,tname)
+                    table2 = tableDiff.getTables(yesterfile,tname)
+                    diff_set = tableDiff.genDiffSet(table1,table2)
+                    html = tableDiff.table2htmlHighlight(table1,diff_set)
+                else:
+                    html = openimsi.get_html(filename,tname)
+            else:
+                html = openimsi.get_html(filename,tname)
             soup = openimsi.BeautifulSoup(html)
             if len(soup.find_all('tr')) > 1:
                 count += 1
@@ -58,6 +84,7 @@ def create_report(dist_dir):
                 pass
     with open(os.path.join(dist_dir,'运维三组openimis报表检查汇总--.html'.decode('utf-8')),'w+') as report_file:
         report_file.write(output)
+    print "Create 运维三组openimis报表检查汇总--.html"
 
 def convert(src_dir,dist_dir):
     print 'Start convert %s:'%src_dir
@@ -123,25 +150,24 @@ if __name__ == '__main__':
             break
 
     #获得输入输出目录
-    work_dirs = []
-    for value in os.listdir(run_dir):
+    dirlist = os.listdir(run_dir)
+    dirlist.sort()
+    for value in dirlist:
         src_dir = os.path.join(run_dir,value)
         if os.path.isdir(src_dir) and value[0] != '.':
             dist_dir = os.path.join(src_dir,DIST_DIR)
             if os.path.isdir(dist_dir):
                 print "skip %s"%src_dir
-#                work_dirs.append([src_dir, dist_dir])
+                create_report(dist_dir)
             elif os.path.isfile("%s/__init__.py"%src_dir):
                 print "skip %s"%src_dir
-#                work_dirs.append([src_dir, dist_dir])
+                create_report(dist_dir)
             else:
                 work_dirs.append([src_dir, dist_dir])
                 print "%s will be convert"%src_dir
-
-    for work_dir in work_dirs:
-        os.mkdir(work_dir[1])
-        convert(work_dir[0],work_dir[1])
-        create_report(work_dir[1])
+                os.mkdir(dist_dir)
+                convert(src_dir,dist_dir)
+                create_report(dist_dir)
 
     print 'All dir convert Complite!\n'
     raw_input("Press Enter to Exit. ")
