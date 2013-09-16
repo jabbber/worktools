@@ -165,7 +165,6 @@ if __name__ == '__main__':
             elif os.path.isfile("%s/__init__.py"%src_dir):
                 print "skip %s"%src_dir
             else:
-                work_dirs.append([src_dir, dist_dir])
                 print "%s will be convert"%src_dir
                 os.mkdir(dist_dir)
                 convert(src_dir,dist_dir)

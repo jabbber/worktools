@@ -8,8 +8,11 @@ n = 0
 for col in sys.argv[2:]:
     n += 1
     print "\rparse %s/%s ... %s" % (n,len(sys.argv[2:]),col),
-    html = file(os.path.realpath(col),'r').read().decode('utf-8')
-
+    html = open(os.path.realpath(col),'r').read()
+    try:
+        html = html.decode('utf-8')
+    except:
+        pass
     soup = BeautifulSoup(html)
     #help(soup.body.div)
     hostname,ip = soup.body.div.findChildren()
