@@ -89,7 +89,7 @@ def create_report(dist_dir):
                 pass
     with open(os.path.join(dist_dir,'运维三组openimis报表检查汇总--.html'.decode('utf-8')),'w+') as report_file:
         report_file.write(output)
-    print "Create mail file.html"
+    print "Create mail html file in '%s'"%dist_dir
 
 def convert(src_dir,dist_dir):
     print 'Start convert %s:'%src_dir
