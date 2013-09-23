@@ -35,7 +35,9 @@ def module_path():
 def create_report(dist_dir):
     if os.path.isfile(os.path.join(dist_dir,'运维三组openimis报表检查汇总--.html'.decode('utf-8'))):
         return 0
-    output = '大家好！<br><p class="MsoNormal" align="left" style="line-height:12.75pt;text-indent:24pt">附件是昨天的openimis报表的汇总，其中有以下问题需要各位系统管理员关注下，其中有些数据可能与openimis未同步，还是请管理员确认一下，以免出错。</p>'
+    output = '''大家好！<br>
+    <p class="MsoNormal" align="left" style="line-height:12.75pt;text-indent:24pt">附件是昨天的openimis报表的汇总，其中有以下问题需要各位系统管理员关注下，其中有些数据可能与openimis未同步，还是请管理员确认一下，以免出错。其中高亮的行是新出现的异常。</p>
+    '''
     count = 0
     for (head,fname,tname) in CARE_LIST:
         try:
