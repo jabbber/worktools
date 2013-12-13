@@ -33,14 +33,20 @@ for col in sys.argv[2:]:
             temp = item.find_all('td')
             checkname = temp[-2].div.string.encode('utf-8')
             checklog = temp[-1].get_text().encode('utf-8')
-            values = checklog.split('\r\n\r\n')
-            if len(values) != 7:
+            if checklog.find('\r') < 0:
+                values = []
+                for line in checklog.split('\n'):
+                    if line:
+                        values.append(line)
+            else:
+                values = checklog.split('\r\n\r\n')
+            if len(values) != 8:
                 pass
             else:
                 interfacename1 = 'eth' + values[0][values[0].find('eth')+3]
-                interfacename2 = 'eth' + values[3][values[3].find('eth')+3]
+                interfacename2 = 'eth' + values[4][values[4].find('eth')+3]
                 interfacestat1 = values[1][12:]
-                interfacestat2 = values[4][12:]
+                interfacestat2 = values[5][12:]
                 result[hostname][checkname] = [interfacename1,interfacestat1,interfacename2,interfacestat2]
 print '\r                                                                                                                                  '
 checkname = sys.argv[1]
@@ -51,6 +57,11 @@ elif checkname != '系统网络状态':
     normalvalue = '正常'
     output = {}
     for hostname in sorted(result.keys()):
+        try:
+            result[hostname][checkname]
+        except:
+            print "没有正确解析:"
+            print "\n"+ hostname + '\t'+ checkname
         if result[hostname][checkname] == normalvalue:
             pass
         else:
@@ -69,18 +80,21 @@ elif checkname != '系统网络状态':
                         elif item.find("sshd[") > 0:
                             item = "sshd[xxx]: error"
                         elif checkname == '文件系统是否需要fsck':
-                            time_str = item[-25:-1]
-                            print time_str
-                            time_sec = time.mktime(time.strptime(time_str))
-                            time_ = time.time() - time_sec
-                            if time_ < 5184000:
-                                item = "小于60天"
-                            elif time_ < 31536000:
-                                item = "小于365天"
-                            elif time_ < 86400000:
-                                item = "小于1000天"
-                            else:
-                                item = "大于1000天"
+                            if item.find("Last checked:") > 0:
+                                if item[-1] != "\n":
+                                    time_str = item[-24:]
+                                else:
+                                    time_str = item[-25:-1]
+                                time_sec = time.mktime(time.strptime(time_str))
+                                time_ = time.time() - time_sec
+                                if time_ < 5184000:
+                                    item = "小于60天"
+                                elif time_ < 31536000:
+                                    item = "小于365天"
+                                elif time_ < 86400000:
+                                    item = "小于1000天"
+                                else:
+                                    item = "大于1000天"
                         if output.has_key(item):
                             if hostname in output[item]:
                                 pass
