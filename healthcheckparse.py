@@ -12,12 +12,12 @@ for col in sys.argv[2:]:
     try:
         html = html.decode('utf-8')
     except:
-        pass
+        html = html.decode('gbk')
     soup = BeautifulSoup(html)
     #help(soup.body.div)
     hostname,ip = soup.body.div.findChildren()
-    hostname = hostname.string.encode('utf-8')
-    ip = ip.get_text().encode('utf-8')
+    hostname = str(hostname.string.encode('utf-8'))
+    ip = str(ip.get_text().encode('utf-8'))
     result[hostname] = {}
     result[hostname]['ip'] = ip
     checklist = soup.body.table.find_all('tr')
@@ -25,14 +25,14 @@ for col in sys.argv[2:]:
     if sys.argv[1] != "系统网络状态":
         for item in checklist[:15]+checklist[17:]:
             temp = item.find_all('td')
-            checkname = temp[-3].div.string.encode('utf-8')
-            checklog = temp[-1].get_text().encode('utf-8')
+            checkname = str(temp[-3].div.string.encode('utf-8'))
+            checklog = str(temp[-1].get_text().encode('utf-8'))
             result[hostname][checkname] = checklog
     else:
         for item in checklist[15:17]:
             temp = item.find_all('td')
-            checkname = temp[-2].div.string.encode('utf-8')
-            checklog = temp[-1].get_text().encode('utf-8')
+            checkname = str(temp[-2].div.string.encode('utf-8'))
+            checklog = str(temp[-1].get_text().encode('utf-8'))
             if checklog.find('\r') < 0:
                 values = []
                 for line in checklog.split('\n'):
@@ -49,7 +49,7 @@ for col in sys.argv[2:]:
                 interfacestat2 = values[5][12:]
                 result[hostname][checkname] = [interfacename1,interfacestat1,interfacename2,interfacestat2]
 print '\r                                                                                                                                  '
-checkname = sys.argv[1]
+checkname = str(sys.argv[1])
 if checkname == 'ip':
     for hostname in sorted(result.keys()):
         print hostname + " " + result[hostname]['ip']
@@ -62,7 +62,7 @@ elif checkname != '系统网络状态':
         except:
             print "没有正确解析:"
             print "\n"+ hostname + '\t'+ checkname
-        if result[hostname][checkname] == normalvalue:
+        if result[hostname][checkname].find(normalvalue) > -1:
             pass
         else:
             abnormal = result[hostname][checkname]
