@@ -87,14 +87,10 @@ elif checkname != '系统网络状态':
                                     time_str = item[-25:-1]
                                 time_sec = time.mktime(time.strptime(time_str))
                                 time_ = time.time() - time_sec
-                                if time_ < 5184000:
-                                    item = "小于60天"
-                                elif time_ < 31536000:
-                                    item = "小于365天"
-                                elif time_ < 86400000:
-                                    item = "小于1000天"
+                                if time_ < 15552000:
+                                    item = "小于180天"
                                 else:
-                                    item = "大于1000天"
+                                    item = "大于180天"
                         if output.has_key(item):
                             if hostname in output[item]:
                                 pass
