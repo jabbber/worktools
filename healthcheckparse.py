@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 import os,sys
 import time
+import re
 from bs4 import BeautifulSoup
 result={}
 n = 0
@@ -73,13 +74,7 @@ elif checkname != '系统网络状态':
                     if item in ("","\r","\n"):
                         pass
                     else:
-                        if item.find("end_request: I/O error") > 0:
-                            item = "end_request: I/O error"
-                        elif item.find("Log statistics;") > 0:
-                            item = "syslog-ng[xxx]: Log statistics;"
-                        elif item.find("sshd[") > 0:
-                            item = "sshd[xxx]: error"
-                        elif checkname == '文件系统是否需要fsck':
+                        if checkname == '文件系统是否需要fsck':
                             if item.find("Last checked:") > 0:
                                 if item[-1] != "\n":
                                     time_str = item[-24:]
@@ -91,6 +86,10 @@ elif checkname != '系统网络状态':
                                     item = "小于180天"
                                 else:
                                     item = "大于180天"
+                        else:
+                            item = item.replace(hostname,'[HOSTNAME]')
+                            item = re.sub('[A-Z][a-z][a-z]\s+\d+\s+\d+:\d+:\d+','',item)
+                            item = re.sub('\[\s*\d*\.?\d+\]','[]',item)
                         if output.has_key(item):
                             if hostname in output[item]:
                                 pass
