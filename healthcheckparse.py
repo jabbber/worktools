@@ -8,12 +8,12 @@ result={}
 n = 0
 for col in sys.argv[2:]:
     n += 1
-    print "\rparse %s/%s ... %s" % (n,len(sys.argv[2:]),col),
+    sys.stderr.write("\rparse %s/%s ... %s" % (n,len(sys.argv[2:]),col))
     html = open(os.path.realpath(col),'r').read()
     try:
         html = html.decode('utf-8')
     except:
-        html = html.decode('gbk')
+        html = html.decode('gb18030')
     soup = BeautifulSoup(html)
     #help(soup.body.div)
     hostname,ip = soup.body.div.findChildren()
@@ -49,13 +49,12 @@ for col in sys.argv[2:]:
                 interfacestat1 = values[1][12:]
                 interfacestat2 = values[5][12:]
                 result[hostname][checkname] = [interfacename1,interfacestat1,interfacename2,interfacestat2]
-print '\r                                                                                                                                  '
+sys.stderr.write("\n")
 checkname = str(sys.argv[1])
 if checkname == 'ip':
     for hostname in sorted(result.keys()):
         print hostname + " " + result[hostname]['ip']
 elif checkname != '系统网络状态':
-    normalvalue = '正常'
     output = {}
     for hostname in sorted(result.keys()):
         try:
@@ -63,40 +62,37 @@ elif checkname != '系统网络状态':
         except:
             print "没有正确解析:"
             print "\n"+ hostname + '\t'+ checkname
-        if result[hostname][checkname].find(normalvalue) > -1:
+        abnormal = result[hostname][checkname]
+        if abnormal == None:
             pass
         else:
-            abnormal = result[hostname][checkname]
-            if abnormal == None:
-                pass
-            else:
-                for item in abnormal.split('\n'):
-                    if item in ("","\r","\n"):
-                        pass
-                    else:
-                        if checkname == '文件系统是否需要fsck':
-                            if item.find("Last checked:") > 0:
-                                if item[-1] != "\n":
-                                    time_str = item[-24:]
-                                else:
-                                    time_str = item[-25:-1]
-                                time_sec = time.mktime(time.strptime(time_str))
-                                time_ = time.time() - time_sec
-                                if time_ < 15552000:
-                                    item = "小于180天"
-                                else:
-                                    item = "大于180天"
-                        else:
-                            item = item.replace(hostname,'[HOSTNAME]')
-                            item = re.sub('[A-Z][a-z][a-z]\s+\d+\s+\d+:\d+:\d+','',item)
-                            item = re.sub('\[\s*\d*\.?\d+\]','[]',item)
-                        if output.has_key(item):
-                            if hostname in output[item]:
-                                pass
+            for item in abnormal.split('\n'):
+                if item in ("","\r","\n"):
+                    pass
+                else:
+                    if checkname == '文件系统是否需要fsck':
+                        if item.find("Last checked:") > 0:
+                            if item[-1] != "\n":
+                                time_str = item[-24:]
                             else:
-                                output[item].append(hostname)
+                                time_str = item[-25:-1]
+                            time_sec = time.mktime(time.strptime(time_str))
+                            time_ = time.time() - time_sec
+                            if time_ < 15552000:
+                                item = "小于180天"
+                            else:
+                                item = "大于180天"
+                    else:
+                        item = item.replace(hostname,'[HOSTNAME]')
+                        item = re.sub('[A-Z][a-z][a-z]\s+\d+\s+\d+:\d+:\d+','',item)
+                        item = re.sub('\[\s*\d*\.?\d+\]','[]',item)
+                    if output.has_key(item):
+                        if hostname in output[item]:
+                            pass
                         else:
-                            output[item] = [hostname]
+                            output[item].append(hostname)
+                    else:
+                        output[item] = [hostname]
     print "%s:\n"%checkname
     for abnormal in output:
         if abnormal in ("","\r"):
