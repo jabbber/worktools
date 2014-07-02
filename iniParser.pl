@@ -60,9 +60,8 @@ if ($conf->{'err'}){
     print "\n";
     exit 1;
 }
-my $val = $conf->val($session, $key);
-if ($val){
-    print "I find $key ............... value $val.\n";
+if ($conf->val($session, $key)){
+    print "I find $key ............... value ". $conf->val($session, $key) .".\n";
 }else{
     print "I can not find $key ............... value.\n";
 }
