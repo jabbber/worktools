@@ -86,6 +86,7 @@ elif checkname != '系统网络状态':
                         item = item.replace(hostname,'[HOSTNAME]')
                         item = re.sub('[A-Z][a-z][a-z]\s+\d+\s+\d+:\d+:\d+','',item)
                         item = re.sub('\[\s*\d*\.?\d+\]','[]',item)
+                        item = re.sub('=\d+','=10086',item)
                     if output.has_key(item):
                         if hostname in output[item]:
                             pass
