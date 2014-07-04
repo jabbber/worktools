@@ -1,9 +1,6 @@
 #!/usr/bin/env perl
 use strict; use warnings;
 
-my $session=$ARGV[0];
-my $key=$ARGV[1];
-
 package IniParser;
     sub new() {
         my $type = shift;
@@ -24,7 +21,7 @@ package IniParser;
         my $session = shift;
         my $key = shift;
         my $flag = 0;
-        open CONFIG,"$this->{'iniFile'}" or $this->{'err'} = "open $this->{'iniFile'}: $!";
+        open CONFIG,"$this->{'iniFile'}" or $this->{'err'} = "open $this->{'iniFile'} error: $!";
         if (! $this->{'err'}){
             while (my $string = <CONFIG>){
                 chomp $string;
@@ -53,7 +50,11 @@ package IniParser;
     }
 1;
 
-my $conf = IniParser->new("config.ini");
+my $iniFile=$ARGV[0];
+my $session=$ARGV[1];
+my $key=$ARGV[2];
+
+my $conf = IniParser->new($iniFile);
 if ($conf->{'err'}){
     print $conf->{'err'};
     print "\n";
