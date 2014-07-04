@@ -7,8 +7,20 @@ package IniParser;
         my $this = {};
         $this->{'iniFile'} = shift;
         $this->{'err'} = "";
+        $this->{'val'} = {};
         open CONFIG,"$this->{'iniFile'}" or $this->{'err'} = "open $this->{'iniFile'}: $!";
         if (! $this->{'err'}){
+            my $session;
+            while (my $string = <CONFIG>){
+                chomp $string;
+                if ( $string =~ /^#/){next;}
+                if ( $string =~ /^\[(\w+)\]/ ){
+                    $session = $1;
+                    $this->{'val'}{$session} = {};
+                }elsif($session and $string =~ /^(\w+)=(.*)/){
+                    $this->{'val'}{$session}{$1} = $2;
+                }
+            }
             close CONFIG;
         }
         bless $this, $type;
@@ -20,33 +32,11 @@ package IniParser;
         my $this = shift @_;
         my $session = shift;
         my $key = shift;
-        my $flag = 0;
-        open CONFIG,"$this->{'iniFile'}" or $this->{'err'} = "open $this->{'iniFile'} error: $!";
-        if (! $this->{'err'}){
-            while (my $string = <CONFIG>){
-                chomp $string;
-                if($flag == 0){
-                    if ( $string =~ /^\[$session\]/ ){
-                    $flag = 1;
-                    }
-                }else{
-                    if( $string =~ /^\[/){
-                    last;}
-                    if ( $string =~ /^#/){
-                        next;
-                    }
-                    if ($string =~ /^(\w+)=(.*)/){
-                        my $k = $1;
-                        my $v = $2;
-                        if($k eq $key){
-                            return $v;
-                        }
-                    }
-                }
-            }
-            close CONFIG;
+        if (exists $this->{'val'}{$session}{$key}){
+            return $this->{'val'}{$session}{$key};
+        }else{
+            return "";
         }
-        return "";
     }
 1;
 
