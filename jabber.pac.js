@@ -31,9 +31,9 @@ function heredoc(fn) {
 function listmatch(value,list) {
     for (var n in list)
     {
-        if (list[n] != '')
+        if (list[n] !== '')
         {
-            if (value.indexOf(list[n]) != -1) return true;
+            if (value.indexOf(list[n]) !== -1) return true;
         }
     }
     return false;
@@ -42,7 +42,7 @@ function listmatch(value,list) {
 function regmatch(value) {
     for (var n in regexp_list)
     {
-        if (regexp_list[n] != '')
+        if (regexp_list[n] !== '')
         {
             try {
                 re = new RegExp(regexp_list[n]);
