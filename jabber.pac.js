@@ -29,7 +29,7 @@ https?://www.google.com.*
 
 var work_list = heredoc(function(){/*
 ://188\.188\..*
-://192\.168\.[489(?:10)]\..*
+://192\.168\.[489(?:10)]\.\d+\..*
 */});
 
 domain_list = domain_list.split("\n");
