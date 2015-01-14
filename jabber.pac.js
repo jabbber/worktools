@@ -4,17 +4,20 @@ author: Jabber Zhou
 contact: mayjabber#gmail.com
 */
 var index_Proxy = "DIRECT;";
-var SSL_Proxy = "SOCKS5 127.0.0.1:1080; SOCKS5 127.0.0.1:10000;";
-var base_Proxy = "PROXY 127.0.0.1:8118;";
+var SSL_Proxy = "SOCKS5 127.0.0.1:1080;";
+var base_Proxy = "PROXY 127.0.0.1:8087;";
+var https_Proxy = SSL_Proxy + base_Proxy + index_Proxy;
+var http_Proxy = base_Proxy + SSL_Proxy + index_Proxy;
 
 var domain_list = heredoc(function(){/*
 twitter.com
 youtube.com
 ytimg.com
+ip138.com
+ipaddress.com
 */});
 
 var url_list = heredoc(function(){/*
-http://ipaddress.com/
 https://www.google.com/search?
 http://www.google.com/url?
 */});
@@ -82,11 +85,19 @@ function regMatch(url) {
     return false;
 }
 
+function switchProxy(url) {
+    if (url.indexOf('https://') === -1 ) {
+        return http_Proxy;
+    }else{
+        return https_Proxy;
+    }
+}
+
 function FindProxyForURL(url, host)
 {
-    if (domainMatch(host)) {return SSL_Proxy;}
-    if (urlMatch(url)) {return SSL_Proxy;}
-    if (regMatch(url)) {return SSL_Proxy;}
+    if (domainMatch(host)) {return switchProxy(url);}
+    if (urlMatch(url)) {return switchProxy(url);}
+    if (regMatch(url)) {return switchProxy(url);}
 
     return index_Proxy;
 }
