@@ -43,8 +43,9 @@ def main ():
         myProgress.start()
         while line:
             line = stracef.readline()
+        #for line in stracef.readlines():
             try:
-                tid = int(line[:line.find(' ')])
+                tid = int(line[:line.index(' ')])
             except:
                 continue
             if tid in tmp:
@@ -56,7 +57,7 @@ def main ():
 if __name__ == "__main__":
     debug = False
     if debug:
-        import profile
+        import cProfile as profile
         profile.run("main()")
     else:
         main()
