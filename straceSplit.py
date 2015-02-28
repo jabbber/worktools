@@ -7,17 +7,17 @@ import threading
 
 if len(sys.argv) != 3:
     print("usage:")
-    print("%s SOURCE_FILE DES_DIR"%sys.argv[0])
+    print("{} SOURCE_FILE DES_DIR".format(sys.argv[0]))
     exit()
 
 stracefile=sys.argv[1]
 outputdir=sys.argv[2]
 
 if not os.path.isfile(stracefile):
-    print("'%s' is not a file!"%stracefile)
+    print("'{}' is not a file!".format(stracefile))
     sys.exit(1)
 if not os.path.isdir(outputdir):
-    print("'%s' is not a directory!"%outputdir)
+    print("'{}' is not a directory!".format(outputdir))
     sys.exit(2)
 
 class Progress (threading.Thread):
@@ -26,14 +26,15 @@ class Progress (threading.Thread):
         self.fd = fd 
         self.fsize = fsize//100
     def run(self):
+        print('parse...',file=sys.stderr)
         while not self.fd.closed:
             print('{}%'.format(self.fd.tell()//self.fsize),end='\r',file=sys.stderr)
-            time.sleep(1)
+            time.sleep(0.2)
+        print('100%',end='\r',file=sys.stderr)
+        print('\nfinished!',file=sys.stderr)
 
 tmp = {}
 size = os.path.getsize(stracefile)
-
-print('parse...',file=sys.stderr)
 with open(stracefile) as stracef:
     line = True
     myProgress = Progress(stracef,size)
@@ -49,5 +50,4 @@ with open(stracefile) as stracef:
         else:
             tmp[tid] = open(os.path.join(outputdir,os.path.basename(stracefile)+'.'+str(tid)),'w')
         tmp[tid].write(line)
-print('\nfinished!',file=sys.stderr)
 
