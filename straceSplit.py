@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+# split the strace -f output by process/task id
 from __future__ import print_function
 import os
 import sys
@@ -33,21 +34,30 @@ class Progress (threading.Thread):
         print('100%',end='\r',file=sys.stderr)
         print('\nfinished!',file=sys.stderr)
 
-tmp = {}
-size = os.path.getsize(stracefile)
-with open(stracefile) as stracef:
-    line = True
-    myProgress = Progress(stracef,size)
-    myProgress.start()
-    while line:
-        line = stracef.readline()
-        try:
-            tid = int(line[:line.find(' ')])
-        except:
-            continue
-        if tmp.get(tid):
-            pass
-        else:
-            tmp[tid] = open(os.path.join(outputdir,os.path.basename(stracefile)+'.'+str(tid)),'w')
-        tmp[tid].write(line)
+def main ():
+    tmp = {}
+    size = os.path.getsize(stracefile)
+    with open(stracefile) as stracef:
+        line = True
+        myProgress = Progress(stracef,size)
+        myProgress.start()
+        while line:
+            line = stracef.readline()
+            try:
+                tid = int(line[:line.find(' ')])
+            except:
+                continue
+            if tid in tmp:
+                pass
+            else:
+                tmp[tid] = open(os.path.join(outputdir,os.path.basename(stracefile)+'.'+str(tid)),'w')
+            tmp[tid].write(line)
+
+if __name__ == "__main__":
+    debug = False
+    if debug:
+        import profile
+        profile.run("main()")
+    else:
+        main()
 
