@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python2
 # split the strace -f output by process/task id
 from __future__ import print_function
 import os
@@ -41,9 +41,9 @@ def main ():
         line = True
         myProgress = Progress(stracef,size)
         myProgress.start()
-        while line:
-            line = stracef.readline()
-        #for line in stracef.readlines():
+        #while line:
+        #    line = stracef.readline()
+        for line in stracef:
             try:
                 tid = int(line[:line.index(' ')])
             except:
