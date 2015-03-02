@@ -212,10 +212,40 @@ class Tables():
         """return the tables you given titles use html table format,default is all tables.
         """
         tables = self.tables
-        output = ''
+        output = '''<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html>
+    <head>
+        <meta http-equiv="Content-Type" CONTENT="text/html; charset=UTF-8"/>
+        <style type="text/css">
+        <!--
+        body {
+            font-family:Georgia, serif;
+            font-size:16px;
+        }
+        table {
+            width:100%;
+            table-layout:fixed;
+            font-size:14px;
+            border-collapse:collapse;
+        }
+        th {
+            white-space:nowrap;
+            font-weight:bold;
+            color:blue;
+        }
+        td {
+            word-break:break-all;
+        }
+        table,th, td{
+            border:1px solid black;
+        }
+        -->
+        </style>
+    <body>
+'''
         if titles == 'all':
             for i, title in enumerate(self.titles):
-                output += ('<p><font color="#38f709" size="4">%s</font></p>\n'%title)
+                output += ('<p>%s</p>\n'%title)
                 output += table2html(tables[i])
                 output += '<br/>\n'
         else:
@@ -301,49 +331,17 @@ class Tables():
 
 def table2html(table):
     column_widths = []
-    PER = 10
-    MIN_WIDTH = 2
-    MAX_WIDTH = 50
-    for row in table:
-        for i, value in enumerate(row):
-            if type(value) == str:
-                l = len(value.decode('utf-8'))
-                if l == len(value):
-                    l = l/2 + 1
-            elif type(value) == int:
-                l = len(str(value))
-            else:
-                l = len(value)
-            if len(column_widths) > i:
-                if l > column_widths[i]:
-                        column_widths[i] = l
-            else:
-                column_widths.append(l)
-    total_width = 0
-    for width in column_widths:
-        if width < MAX_WIDTH:
-            total_width += width
-        else:
-            total_width += MAX_WIDTH
-    tablestyle = "width=%s style='BORDER-BOTTOM-STYLE: solid; BORDER-RIGHT-STYLE: solid; BORDER-TOP-STYLE: solid; BORDER-LEFT-STYLE: solid' border=1 cellSpacing=0 borderColor=#000000 cellPadding=1 bgColor=#ffffff"%(total_width*PER)
-    tdstyle = 'style="white-space:nowrap"'
-    html = '<table %s>\n'%tablestyle
+    html = '<table>\n'
     for row in table:
         if row[0] == '序号':
             html += '  <tr>\n'
             for i, val in enumerate(row):
-                if column_widths[i] < MIN_WIDTH:
-                    width = MIN_WIDTH
-                elif column_widths[i] > MAX_WIDTH:
-                    width = MAX_WIDTH
-                else:
-                    width = column_widths[i]
-                html += "<td width=%s ><NOBR><FONT size=2 face=宋体 color=#0909f7><STRONG>%s</STRONG></FONT></NOBR></td>"%(width*PER,val)
+                html += "<th>%s</th>"%val
             html += '  </tr>\n'
         else:
             html += '  <tr>\n'
             for val in row:
-                html += "<td style='word-break:break-all' ><FONT size=2 face=宋体  >%s</FONT></td>"%val
+                html += "<td>%s</td>"%val
             html += '  </tr>\n'
     html += '</table>'
     return html
