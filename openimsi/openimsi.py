@@ -3,19 +3,18 @@
 import os,sys
 import traceback
 import re
+from bs4 import BeautifulSoup
 from openpyxl.reader.excel import load_workbook
 from openpyxl import Workbook
 from openpyxl.cell import get_column_letter
-import openpyxl.style
-from bs4 import BeautifulSoup
+from openpyxl.styles import colors, Style, PatternFill, Border, Side, Alignment, Protection, Font
 
 class Tables():
     def __init__(self):
         self.titles = []
         self.tables = []
-        self.hostlist = []
-        self.blacklist = []
-        self.project_find = None
+        self.hostlist = None
+        self.blacklist = None
     def clear(self):
         """clear the data have been loaded.
         """
@@ -58,7 +57,7 @@ class Tables():
             for row in table.find_all('tr',recursive=False):
                 line = []
                 for val in row.find_all('td',recursive=False):
-                    value = val.get_text()
+                    value = val.get_text().strip()
                     if type(value) == unicode:
                         value = value.encode('utf-8')
                     line.append(value)
@@ -70,23 +69,20 @@ class Tables():
                     pass
     def load_xlsx(self,xlsx_file):
         wb = load_workbook(filename = xlsx_file)
-        sheet_ranges = wb.get_active_sheet()
-        table = 0
-        row = 0
-        row_empty = 0
-        row_max_empty = 100
-        end = False
-        th = None
-        while not end:
+        sheet_ranges = wb.active
+        row = 1
+        end = sheet_ranges.get_highest_row()
+        th = ""
+        while row <= end:
             col = []
             col_empty = 0
             col_max_empty = 3
             col_end = False
             while not col_end:
-                value = sheet_ranges.cell(row=row,column=len(col)).value
+                value = sheet_ranges.cell(row=row,column=len(col)+1).value
                 if value:
                     if type(value) == unicode:
-                        value = value.encode('utf-8')
+                        value = value.encode('utf-8').strip()
                     col_empty = 0
                 else:
                     value = ''
@@ -96,118 +92,66 @@ class Tables():
                     col = col[:-col_max_empty]
                     col_end = True
             if len(col) == 1:
-                if not th:
-                    th = col[0]
-                    worktable = []
-                else:
-                    if th == "" and worktable == []:
-                        pass
-                    else:
-                        self.titles.append(th)
-                        self.tables.append(worktable)
-                    th = col[0]
-                    worktable = []
+                if th:
+                    self.titles.append(th)
+                    self.tables.append(worktable)
+                th = col[0]
+                worktable = []
             elif len(col) > 1:
-                if not th:
-                    th = ""
-                    worktable = []
                 if self.__black_filter(col):
                     pass
-                elif self.__host_filter(col):
+                elif th and self.__host_filter(col):
                     worktable.append(col)
-                else:
-                    pass
-                row_empty = 0
-            else:
-                row_empty += 1
-            if row_empty >= row_max_empty:
-                end = True
-                self.titles.append(th)
-                self.tables.append(worktable)
             row += 1
+        self.titles.append(th)
+        self.tables.append(worktable)
         return 0
     def __load_xlsx_list(self,xlsx_file):
         wb = load_workbook(filename = xlsx_file)
-        sheet_ranges = wb.get_active_sheet()
-        end = False
-        row = 0
-        keylist = []
-        while not end:
-            value = sheet_ranges.cell(row=row,column=0).value
+        sheet_ranges = wb.active
+        end = sheet_ranges.get_highest_row()
+        row = 1
+        keyset = set()
+        while row <= end:
+            value = sheet_ranges.cell(row=row,column=1).value
             if type(value) == unicode:
-                keylist.append(value.encode('utf-8'))
-            else:
-                end = True
+                keyset.add(value.encode('utf-8'))
             row += 1
-        return keylist
+        return keyset
     def load_list(self,list_file):
-        """load a list from a text or xlsx file,return python list type.
+        """load a list from a text or xlsx file,return python set type.
         """
         if not list_file:
-            keylist = []
+            keyset = set()
         elif list_file[-5:] == '.xlsx':
-            keylist = self.__load_xlsx_list(list_file)
+            keyset = self.__load_xlsx_list(list_file)
         else:
             with open(list_file) as list_f:
-                keylist = [line.strip() for line in list_f if line.strip() != '']
-        return keylist
-    def __filter(self,row,key_list):
+                keyset = set()
+                for line in list_f:
+                    if line.strip():
+                        keyset.add(line.strip())
+        return keyset
+    def __filter(self,row,keyset):
         for value in row:
-            for key in key_list:
-                if type(key) == str and type(value) == str:
-                    if value.find(key) >= 0 or value.find(key.upper()) >=0:
-                        return True
+            if type(value) == str:
+                if value in keyset:
+                    return True
         return False
-    def load_project_list(self,list_file):
-        self.__project_find = '''
-            HQs(\w{3})?                         #Host type
-            [_|-]?                              #split sign
-            (''' + '|'.join(self.load_list(list_file)) +''')      #project name
-            [_|-]?                              #split sign
-            (\d|\w\d{0,2}|\w{3})                #number
-        '''
-    def __host_search(self,string):
-        if re.search(self.__project_find, string, re.VERBOSE):
-            return True
-        else:
-            return False
     def __host_filter(self,row):
-        if self.project_find:
-            return self.__host_search(row)
-
-        key_list = self.hostlist
-        if key_list == []:
+        keyset = self.hostlist
+        if not keyset:
             return True
         if '序号' == row[0]:
             return True
         else:
-            return self.__filter(row,key_list)
+            return self.__filter(row,keyset)
     def __black_filter(self,row):
-        key_list = self.blacklist
-        if key_list == []:
+        keyset = self.blacklist
+        if not keyset:
             return False
         else:
-            return self.__filter(row,key_list)
-    def __xlsx_setstyle(self,style,style_string):
-        argv = style_string.split(':')
-        n = 0
-        fields = {'font':('name','size','bold','italic','superscript','subscript','underline','strikethrough','color'),
-                'fill':('fill_type','rotation','start_color','end_color'),
-                'borders':('left','right','top','bottom','diagonal','diagonal_direction','all_borders','outline','inside','vertical','horizontal'),
-                'alignment':('horizontal','vertical','text_rotation','wrap_text','shrink_to_fit','indent'),
-                'number_format':('_format_code','_format_index'),
-                'protection':('locked','hidden')
-                }
-        for obj in ('font','fill','borders','alignment','number_format','protection'):
-            for val in fields[obj]:
-                if obj == 'borders' and val != 'diagonal_direction':
-                    for val_1 in ('border_style','color'):
-                        exec "style.%s.%s.%s = eval(argv[n])"%(obj,val,val_1)
-                        n += 1
-                else:
-                    exec "style.%s.%s = eval(argv[n])"%(obj,val)
-                    n += 1
-        return style
+            return self.__filter(row,keyset)
     def get_html(self,titles = 'all'):
         """return the tables you given titles use html table format,default is all tables.
         """
@@ -220,10 +164,6 @@ class Tables():
                 output += '<br/>\n'
         else:
             for title in titles.split(','):
-#                try:
-#                    title = title.decode('utf-8')
-#                except:
-#                    title = title.decode('gb18030')
                 output += ('%s<br/>\n'%title)
                 n = 0
                 finded = []
@@ -243,13 +183,28 @@ class Tables():
         ws = wb.worksheets[0]
         row_num = 0
         column_widths = []
+        
+        titlestyle = Style(font=Font(size=13))
+        thstyle = Style(font=Font(size=10,bold=True,color=colors.BLUE),
+                        border=Border(top=Side(border_style='medium',color=colors.BLACK),
+                            bottom=Side(border_style='medium',color=colors.BLACK),
+                            left=Side(border_style='medium',color=colors.BLACK),
+                            right=Side(border_style='medium',color=colors.BLACK))
+        )
+        tdstyle = Style(font=Font(size=10),
+                        border=Border(top=Side(border_style='medium',color=colors.BLACK),
+                            bottom=Side(border_style='medium',color=colors.BLACK),
+                            left=Side(border_style='medium',color=colors.BLACK),
+                            right=Side(border_style='medium',color=colors.BLACK))
+        )
+        
         for title_num, title in enumerate(self.titles):
-#            ws.title = title
             row_num += 1
             cell = ws.cell('%s%s'%(get_column_letter(1), row_num))
             cell.value = title
-            cell.style.font.size = 13
+            cell.style = titlestyle
             row_num += 1
+            th = False
             for row in tables[title_num]:
                 row_num += 1
                 col_num = 0
@@ -275,16 +230,12 @@ class Tables():
                     col_num += 1
                     cell = ws.cell('%s%s'%(get_column_letter(col_num), row_num))
                     cell.value = value
-                    cell.style.font.size = 10
-                    for key in ('left','right','top','bottom'):
-                        exec "cell.style.borders.%s.border_style = 'medium'"%key
                     if value == '序号':
                         th = True
-                    if th:
-#                        self.__xlsx_setstyle(cell.style,self.XLSXSTYLE_title)
-                        cell.style.font.bold = True
-                    else:
-                        cell.style.alignment.wrap_text = True
+                if th:
+                    ws.row_dimensions[row_num].style = thstyle
+                else:
+                    ws.row_dimensions[row_num].style = tdstyle
             row_num += 1
         for i, column_width in enumerate(column_widths):
             if column_width < 6:
@@ -293,9 +244,6 @@ class Tables():
                 ws.column_dimensions[get_column_letter(i+1)].width = 40
             else:
                 ws.column_dimensions[get_column_letter(i+1)].width = column_width
-
-#            ws = wb.create_sheet()
-#        wb.worksheets.pop()
 
         wb.save(filename = dest_filename)
 
@@ -357,7 +305,8 @@ def get_html(filename,titles = 'all',host_file = None,blacklist = None):
     if blacklist:
         t.blacklist = t.load_list(blacklist)
     t.load(filename)
-    return t.get_html(titles)
+    t.get_xlsx('test.xlsx')
+    #return t.get_html(titles)
 
 if __name__ == "__main__":
     if len(sys.argv) == 5:

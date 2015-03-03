@@ -2,19 +2,6 @@
 # -*- coding: utf-8 -*-
 import os,sys
 import glob
-import openimsi
-
-HOST_LIST = 'hostlist'
-BLACK_LIST = 'blacklist'
-SOURCE_DIR = 'src'
-DIST_DIR = 'target'
-OUT_TYPE = 'xlsx'
-
-CARE_LIST = (
-        ('日常检查异常统计','开放平台开放平台日常检查异常统计表*.xlsx','分区日常检查异常明细-未备注/未处理'),
-        ('开放平台报警系统管理员后续处理跟踪','开放平台开放平台报警系统管理员后续处理跟踪表*.xlsx','未及时回复,昨日新增未回复'),
-        ('','开放平台开放平台操作系统定义作业变化情况统计表*.xlsx','昨日Crontab新增'),
-            )
 
 def we_are_frozen():
     """Returns whether we are frozen via py2exe.
@@ -30,7 +17,25 @@ def module_path():
         return os.path.dirname(unicode(sys.executable, sys.getfilesystemencoding( )))
     
     return os.path.dirname(unicode(__file__, sys.getfilesystemencoding( )))
-#    return os.path.split(os.path.realpath(unicode(__file__, sys.getfilesystemencoding( ))))[0] 
+
+run_dir = os.path.realpath(module_path())
+sys.path.append(run_dir+'/require')
+if os.path.isfile(run_dir):
+    run_dir = os.path.dirname(run_dir)
+
+import openimsi
+
+HOST_LIST = 'hostlist'
+BLACK_LIST = 'blacklist'
+SOURCE_DIR = 'src'
+DIST_DIR = 'target'
+OUT_TYPE = 'xlsx'
+
+CARE_LIST = (
+        ('日常检查异常统计','开放平台开放平台日常检查异常统计表*.xlsx','分区日常检查异常明细-未备注/未处理'),
+        ('开放平台报警系统管理员后续处理跟踪','开放平台开放平台报警系统管理员后续处理跟踪表*.xlsx','未及时回复,昨日新增未回复'),
+        ('','开放平台开放平台操作系统定义作业变化情况统计表*.xlsx','昨日Crontab新增'),
+            )
 
 def create_report(dist_dir):
     if os.path.isfile(os.path.join(dist_dir,'运维三组openimis报表检查汇总--.html'.decode('utf-8'))):
@@ -128,9 +133,7 @@ if __name__ == '__main__':
         sys.exit(0)
 
     #初始化转换器参数
-#    run_dir = os.path.split(os.path.realpath(__file__))[0]
-    run_dir = os.path.realpath(module_path())
-#    print run_dir
+    print run_dir
 
     if sys.argv[1] in ('-d', '--diff'):
         import tableDiff
@@ -170,8 +173,8 @@ if __name__ == '__main__':
             if os.path.isdir(dist_dir):
                 print "skip %s"%src_dir
                 create_report(dist_dir)
-            elif os.path.isfile("%s/__init__.py"%src_dir):
-                print "skip %s"%src_dir
+            elif src_dir in sys.path:
+                pass
             else:
                 print "%s will be convert"%src_dir
                 os.mkdir(dist_dir)
