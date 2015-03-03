@@ -305,8 +305,8 @@ def get_html(filename,titles = 'all',host_file = None,blacklist = None):
     if blacklist:
         t.blacklist = t.load_list(blacklist)
     t.load(filename)
-    t.get_xlsx('test.xlsx')
-    #return t.get_html(titles)
+    #t.get_xlsx('test.xlsx')
+    return t.get_html(titles)
 
 if __name__ == "__main__":
     if len(sys.argv) == 5:
