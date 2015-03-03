@@ -212,37 +212,7 @@ class Tables():
         """return the tables you given titles use html table format,default is all tables.
         """
         tables = self.tables
-        output = '''<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-<html>
-    <head>
-        <meta http-equiv="Content-Type" CONTENT="text/html; charset=UTF-8"/>
-        <style type="text/css">
-        <!--
-        body {
-            font-family:Georgia, serif;
-            font-size:16px;
-        }
-        table {
-            width:100%;
-            table-layout:fixed;
-            font-size:14px;
-            border-collapse:collapse;
-        }
-        th {
-            white-space:nowrap;
-            font-weight:bold;
-            color:blue;
-        }
-        td {
-            word-break:break-all;
-        }
-        table,th, td{
-            border:1px solid black;
-        }
-        -->
-        </style>
-    <body>
-'''
+        output = ''
         if titles == 'all':
             for i, title in enumerate(self.titles):
                 output += ('<p>%s</p>\n'%title)
