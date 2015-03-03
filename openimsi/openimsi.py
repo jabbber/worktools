@@ -73,13 +73,16 @@ class Tables():
         row = 1
         end = sheet_ranges.get_highest_row()
         th = ""
+        col_max = sheet_ranges.get_highest_column()
+        col_max2 = col_max
         while row <= end:
             col = []
             col_empty = 0
-            col_max_empty = 3
+            col_max_empty = 5
             col_end = False
             while not col_end:
-                value = sheet_ranges.cell(row=row,column=len(col)+1).value
+                column = len(col)+1
+                value = sheet_ranges.cell(row=row,column=column).value
                 if value:
                     if type(value) == unicode:
                         value = value.encode('utf-8').strip()
@@ -88,13 +91,16 @@ class Tables():
                     value = ''
                     col_empty += 1
                 col.append(value)
-                if col_empty >= col_max_empty:
-                    col = col[:-col_max_empty]
+                if column >= col_max2:
+                    col_end = True
+                elif col_empty >= col_max_empty:
+                    col = col[:-col_empty]
                     col_end = True
             if len(col) == 1:
                 if th:
                     self.titles.append(th)
                     self.tables.append(worktable)
+                    col_max2 = col_max
                 th = col[0]
                 worktable = []
             elif len(col) > 1:
@@ -102,6 +108,8 @@ class Tables():
                     pass
                 elif th and self.__host_filter(col):
                     worktable.append(col)
+                    if col[0] == '序号':
+                        col_max2= len(col)
             row += 1
         self.titles.append(th)
         self.tables.append(worktable)
