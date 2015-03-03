@@ -3,7 +3,7 @@
 
 import sys
 import openimsi
-
+from openimsi import TABLE_STYLE,TH_STYLE,TD_STYLE
 
 def getTables(table_file,title):
     tables = openimsi.Tables()
@@ -30,15 +30,15 @@ def table2html(table,filter_set):
             if type(value) == str:
                 l = len(value.decode('utf-8'))
                 if l == len(value):
-                    l = l/2 + 1
+                    l = l/2 + 1 
             elif type(value) == int:
                 l = len(str(value))
-            else:
+            else: 
                 l = len(value)
             if len(column_widths) > i:
                 if l > column_widths[i]:
                         column_widths[i] = l
-            else:
+            else:       
                 column_widths.append(l)
     total_width = 0
     for width in column_widths:
@@ -46,26 +46,24 @@ def table2html(table,filter_set):
             total_width += width
         else:
             total_width += MAX_WIDTH
-    tablestyle = "width=%s style='BORDER-BOTTOM-STYLE: solid; BORDER-RIGHT-STYLE: solid; BORDER-TOP-STYLE: solid; BORDER-LEFT-STYLE: solid' border=1 cellSpacing=0 borderColor=#000000 cellPadding=1 bgColor=#ffffff"%(total_width*PER)
-    tdstyle = 'style="white-space:nowrap"'
-    html = '<table %s>\n'%tablestyle
+    html = '<table width=%d %s>\n'%(total_width*PER,TABLE_STYLE)
     for row in table:
         if row[0] == '序号':
             html += '  <tr>\n'
             for i, val in enumerate(row):
                 if column_widths[i] < MIN_WIDTH:
-                    width = MIN_WIDTH
+                    width = MIN_WIDTH 
                 elif column_widths[i] > MAX_WIDTH:
-                    width = MAX_WIDTH
+                    width = MAX_WIDTH 
                 else:
                     width = column_widths[i]
-                html += "<td width=%s ><NOBR><FONT size=2 face=宋体 color=#0909f7><STRONG>%s</STRONG></FONT></NOBR></td>"%(width*PER,val)
+                html += "<th width=%d %s>%s</th>"%(width*PER,TH_STYLE,val)
             html += '  </tr>\n'
         else:
             if tuple(row[1:3]) in filter_set:
                 html += '  <tr>\n'
                 for val in row:
-                    html += "<td style='word-break:break-all' ><FONT size=2 face=宋体  >%s</FONT></td>"%val
+                    html += "<td %s>%s</td>"%(TD_STYLE,val)
                 html += '  </tr>\n'
             else:
                 pass
@@ -98,9 +96,7 @@ def table2htmlHighlight(table,filter_set):
             total_width += width
         else:
             total_width += MAX_WIDTH
-    tablestyle = "width=%s style='BORDER-BOTTOM-STYLE: solid; BORDER-RIGHT-STYLE: solid; BORDER-TOP-STYLE: solid; BORDER-LEFT-STYLE: solid' border=1 cellSpacing=0 borderColor=#000000 cellPadding=1 bgColor=#ffffff"%(total_width*PER)
-    tdstyle = 'style="white-space:nowrap"'
-    html = '<table %s>\n'%tablestyle
+    html = '<table width=%d %s>\n'%(total_width*PER,TABLE_STYLE)
     for row in table:
         if row[0] == '序号':
             html += '  <tr>\n'
@@ -111,7 +107,7 @@ def table2htmlHighlight(table,filter_set):
                     width = MAX_WIDTH
                 else:
                     width = column_widths[i]
-                html += "<td width=%s ><NOBR><FONT size=2 face=宋体 color=#0909f7><STRONG>%s</STRONG></FONT></NOBR></td>"%(width*PER,val)
+                html += "<th width=%d %s>%s</th>"%(width*PER,TH_STYLE,val)
             html += '  </tr>\n'
         else:
             if tuple(row[1:3]) in filter_set:
@@ -119,7 +115,7 @@ def table2htmlHighlight(table,filter_set):
             else:
                 html += '  <tr>\n'
             for val in row:
-                html += "<td style='word-break:break-all' ><FONT size=2 face=宋体  >%s</FONT></td>"%val
+                html += "<td %s>%s</td>"%(TD_STYLE,val)
             html += '  </tr>\n'
     html += '</table>'
     return html

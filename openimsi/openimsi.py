@@ -299,19 +299,53 @@ class Tables():
 
         wb.save(filename = dest_filename)
 
+TABLE_STYLE = 'border=1 cellSpacing=0 borderColor=#000000 cellPadding=1 style="font-family: 宋体, Georgia, serif;font-size:14px;word-wrap: break-word;word-break: normal"'
+TH_STYLE = 'style="white-space:nowrap;font-weight:bold;color:blue"'
+TD_STYLE = ''
+
 def table2html(table):
     column_widths = []
-    html = '<table>\n'
+    PER = 10
+    MIN_WIDTH = 2
+    MAX_WIDTH = 50
+    for row in table:
+        for i, value in enumerate(row):
+            if type(value) == str:
+                l = len(value.decode('utf-8'))
+                if l == len(value):
+                    l = l/2 + 1 
+            elif type(value) == int:
+                l = len(str(value))
+            else: 
+                l = len(value)
+            if len(column_widths) > i:
+                if l > column_widths[i]: 
+                        column_widths[i] = l
+            else:
+                column_widths.append(l)
+    total_width = 0
+    for width in column_widths:
+        if width < MAX_WIDTH:
+            total_width += width
+        else:
+            total_width += MAX_WIDTH
+    html = '<table width=%d %s>\n'%(total_width*PER,TABLE_STYLE)
     for row in table:
         if row[0] == '序号':
             html += '  <tr>\n'
             for i, val in enumerate(row):
-                html += "<th>%s</th>"%val
+                if column_widths[i] < MIN_WIDTH:
+                    width = MIN_WIDTH 
+                elif column_widths[i] > MAX_WIDTH:
+                    width = MAX_WIDTH
+                else:
+                    width = column_widths[i]
+                html += "<th width=%d %s>%s</th>"%(width*PER,TH_STYLE,val)
             html += '  </tr>\n'
         else:
             html += '  <tr>\n'
             for val in row:
-                html += "<td>%s</td>"%val
+                html += "<td %s>%s</td>"%(TD_STYLE,val)
             html += '  </tr>\n'
     html += '</table>'
     return html

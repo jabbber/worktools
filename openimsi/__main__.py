@@ -40,32 +40,6 @@ def create_report(dist_dir):
 <html>
     <head>
         <meta http-equiv="Content-Type" CONTENT="text/html; charset=UTF-8"/>
-        <style type="text/css">
-        <!--
-        body {
-            font-family: 宋体, 文泉译正黑, Georgia, serif;
-            font-size:16px;
-        }
-        table {
-            width:100%;
-            table-layout:auto;
-            font-size:14px;
-            border-collapse:collapse;
-        }
-        th {
-            white-space:nowrap;
-            font-weight:bold;
-            color:blue;
-        }
-        td {
-            word-wrap: break-word;
-            word-break: normal;
-        }
-        table,th, td{
-            border:2px solid black;
-        }
-        -->
-        </style>
 <body>
 <p>大家好！</p>
     <p class="MsoNormal" align="left" style="line-height:12.75pt;text-indent:24pt">附件是昨天的openimis报表的汇总，其中有以下问题需要各位系统管理员关注下，其中有些数据可能与openimis未同步，还是请管理员确认一下，以免出错。其中高亮的行是新出现的异常。</p>
