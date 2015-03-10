@@ -52,6 +52,7 @@ def main ():
     tid_unfinish = {}
     fd_filter = re.compile('\s+([\d:\.]+)\s+(recvfrom|writev|sendto|read|getpeername|close)\((\d+),')
     method_filter = re.compile('"(POST|HTTP)')
+    time_filter = re.compile('"\s+([\d:\.]+)+\s+')
     with open(stracefile) as stracef:
         line = True
         myProgress = Progress(stracef,size)
@@ -62,22 +63,25 @@ def main ():
             except:
                 continue
             if tid in tid_unfinish:
-                time, func, fd = tid_unfinish.pop(tid)
+                time, func, fd, pline = tid_unfinish.pop(tid)
+                line = pline + line
             else:
                 fd_res = fd_filter.search(line)
                 if not fd_res:
                     continue
                 time, func, fd = fd_res.groups()
-                if not fd in fd_dict:
-                    fd_dict[fd] = open(os.path.join(outputdir,os.path.basename(stracefile)+'.fd'+str(fd)),'w')
-                if line.find('<unfinished ...>'):
-                    tid_unfinish[tid] = (time,func,fd)
-                    fd_dict[fd].write(line)
+                if line.find('<unfinished ...>') > -1:
+                    tid_unfinish[tid] = (time,func,fd,line)
                     continue
+            if not fd in fd_dict:
+                fd_dict[fd] = open(os.path.join(outputdir,os.path.basename(stracefile)+'.fd'+str(fd)),'w')
             fd_dict[fd].write(line)
             method_res = method_filter.search(line)
             if method_res:
                 method = method_res.groups()[0]
+#            time_res = time_filter.search(line)
+#            if time_res:
+#                time = time_res.groups()[0]
 
             t = datetime.strptime(time,"%H:%M:%S.%f")
             if func == "writev" and method == "POST":
