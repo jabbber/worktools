@@ -90,29 +90,29 @@ def main ():
             t = datetime.strptime(time,"%H:%M:%S.%f")
             if func == "writev" and method == "POST":
                 if not fd in cs_list:
-                    cs_list[fd] = t
+                    cs_list[fd] = (t,line)
             elif func == "recvfrom" and method == "HTTP" :
                 if fd in cs_list:
                     cs_req_num += 1
-                    cs_req_time += t-cs_list.pop(fd)
+                    cs_req_time += t-cs_list.pop(fd)[0]
             elif func == "recvfrom" and method == "POST":
                 if not fd in ss_list:
-                    ss_list[fd] = t
+                    ss_list[fd] = (t,line)
             elif func == "writev" and method == "HTTP":
                 if fd in ss_list:
                     ss_req_num += 1
-                    ss_req_time += t-ss_list.pop(fd)
+                    ss_req_time += t-ss_list.pop(fd)[0]
             elif func == "sendto" :
                 if not fd in sql_list:
-                    sql_list[fd] = t
+                    sql_list[fd] = (t,line)
             elif func == "read" :
                 if fd in sql_list:
                     sql_req_num += 1
-                    sql_req_time += t-sql_list.pop(fd)
+                    sql_req_time += t-sql_list.pop(fd)[0]
             else:
                 pass
 
-    print("client req={},server req={},sql req={}".format(cs_req_num,ss_req_num,sql_req_num))
+    print("client req={} noanswer={},server req={} noanswer={},sql req={} noanswer={}".format(cs_req_num,len(cs_list),ss_req_num,len(ss_list),sql_req_num,len(sql_list)))
     if cs_req_num > 0 :
         cs_avg_time = (cs_req_time/cs_req_num).total_seconds()
         print("cs_avg_time={0}".format(cs_avg_time))
@@ -122,6 +122,16 @@ def main ():
     if sql_req_num > 0 :
         sql_avg_time = (sql_req_time/sql_req_num).total_seconds()
         print("sql_avg_time={0}".format(sql_avg_time))
+    with open(os.path.join(outputdir,os.path.basename(stracefile)+'.noanswer'),'w') as noanswer:
+        noanswer.write('---------------- cs ---------------\n')
+        for fd in cs_list:
+            noanswer.write(cs_list[fd][1])
+        noanswer.write('---------------- ss ---------------\n')
+        for fd in ss_list:
+            noanswer.write(ss_list[fd][1])
+        noanswer.write('---------------- sql ---------------\n')
+        for fd in sql_list:
+            noanswer.write(sql_list[fd][1])
 
 if __name__ == "__main__":
     debug = False
