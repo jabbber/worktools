@@ -50,9 +50,10 @@ def main ():
     fd_dict = {}
     size = os.path.getsize(stracefile)
     tid_unfinish = {}
-    fd_filter = re.compile('\s+([\d:\.]+)\s+(recvfrom|writev|sendto|read|getpeername|close)\((\d+),')
+    fd_filter = re.compile('\s+[\d:\.]+\s+(recvfrom|writev|sendto|read|getpeername|close)\(([1-9][0-9]*)')
+    openfd_filter = re.compile('\s+[\d:\.]+\s+(open|accept)\(.*\)\s+=\s+([1-9][0-9]*)\s+')
     method_filter = re.compile('"(POST|HTTP)')
-    time_filter = re.compile('"\s+([\d:\.]+)+\s+')
+    time_filter = re.compile('\n?\d+\s+([\d:\.]+)+\s+')
     with open(stracefile) as stracef:
         line = True
         myProgress = Progress(stracef,size)
@@ -63,25 +64,28 @@ def main ():
             except:
                 continue
             if tid in tid_unfinish:
-                time, func, fd, pline = tid_unfinish.pop(tid)
-                line = pline + line
+                line = tid_unfinish.pop(tid) + line
             else:
-                fd_res = fd_filter.search(line)
+                if line.find('<unfinished ...>') > -1:
+                    tid_unfinish[tid] = line
+                    continue
+            fd_res = fd_filter.search(line)
+            if not fd_res:
+                fd_res = openfd_filter.search(line)
                 if not fd_res:
                     continue
-                time, func, fd = fd_res.groups()
-                if line.find('<unfinished ...>') > -1:
-                    tid_unfinish[tid] = (time,func,fd,line)
-                    continue
+            func, fd = fd_res.groups()
             if not fd in fd_dict:
                 fd_dict[fd] = open(os.path.join(outputdir,os.path.basename(stracefile)+'.fd'+str(fd)),'w')
             fd_dict[fd].write(line)
             method_res = method_filter.search(line)
             if method_res:
                 method = method_res.groups()[0]
-#            time_res = time_filter.search(line)
-#            if time_res:
-#                time = time_res.groups()[0]
+            else:
+                method = ''
+            time_res = time_filter.search(line)
+            if time_res:
+                time = time_res.groups()[0]
 
             t = datetime.strptime(time,"%H:%M:%S.%f")
             if func == "writev" and method == "POST":
