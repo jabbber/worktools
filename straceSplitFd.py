@@ -50,7 +50,7 @@ def main ():
     fd_dict = {}
     size = os.path.getsize(stracefile)
     tid_unfinish = {}
-    fd_filter = re.compile('\s+[\d:\.]+\s+(recvfrom|writev|sendto|read|getpeername|close)\(([1-9][0-9]*)')
+    fd_filter = re.compile('\s+[\d:\.]+\s+(recvfrom|writev|sendto|read|write|getpeername|close)\(([1-9][0-9]*)')
     openfd_filter = re.compile('\s+[\d:\.]+\s+(open|accept)\(.*\)\s+=\s+([1-9][0-9]*)\s+')
     method_filter = re.compile('"(POST|HTTP)')
     time_filter = re.compile('\n?\d+\s+([\d:\.]+)+\s+')
