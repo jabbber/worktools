@@ -17,10 +17,9 @@ for sheet in wb.get_sheet_names():
 duplicate = []
 for sheet in sheets.values():
     if len(sheet) > 1:
-        duplicate.append('')
-        duplicate.extend(sheet)
+        duplicate.append('\n'.join(sheet))
 
-#duplicate.sort()
+duplicate.sort()
 for sheet in duplicate:
-    print(sheet)
+    print(sheet+'\n')
 
