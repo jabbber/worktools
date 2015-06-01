@@ -1,89 +1,99 @@
-import os
+import os,sys
+import time
 import traceback
 import signal
+import thread
+from signal import SIGTERM
 
-class Daemon:
-    EXIT_OK,EXIT_AlreadyRun,EXIT_PIDWriteError,EXIT_Timeout = range(4)
-    def self.__init__(self,name,logfile=None,errorfile=None):
-        self.logfile = logfile
-        self.errorfile = errorfile
+class DaemonMgr:
+    def __init__(self,name):
         self.name = name
-        self.pidfile = '/var/run/%s'%name
-    def self.startjob(self):
+        self.pidfile = '/tmp/%s.pid'%name
+        self.pid = None
+    def startjob(self):
         pass
-    def self.stopjob(self):
+    def stopjob(self):
         pass
-    def self.start(self):
-        if self.__isDaemon():
-            print('daemon is already running,stop now.')
-            sys.exit(self.EXIT_AlreadyRun)
+    def start(self):
+        if self.__isAlive(self.__isPID()):
+            print('daemon is already running')
+            return True
         pid = os.fork()
         if pid:
             def onSigChld(*args):
-                print *args
-                print('start fail!')
-                sys.exit(9)
+                pass
             signal.signal(signal.SIGCHLD, onSigChld)
             n = 0 
-            while not self.isDaemon()
+            while not self.__isPID():
                 n += 1
                 if n > 100:
                     print('start time out!')
                     sys.exit(self.EXIT_Timeout)
                 time.sleep(0.1)
             print('started')
-            sys.exit(self.EXIT_OK)
-        os.setsid()
-        devnull = os.open('/dev/null',os.O_RDWR)
-        os.dup2(devnull,0)
-        os.close(devnull)
-        del devnull
-        if self.logfile:
-            logop = open(self.logfile,'a',1)
-            os.dup2(logop.fileno(),1)
-        if self.errorfile:
-            errorop = open(self.errorfile,'a',1)
-            os.dup2(errorop.fileno(),2)
-            del errorop
-        else if logop:
-            os.dup2(logop.fileno(),2)
-        if logop:
-            del logop
-        print "%s has been started."%self.name
-        thread.start_new_thread(self.startjob())
-    def self.stop(self):
-        pass
-    def __isAlive(self,pid):
-        if os.path.isdir('/proc/%d'%pid):
+            print "%s has been started."%self.name
             return True
-        else:
+        os.setsid()
+        pid = os.fork()
+        if pid:
+            exit()
+        thread.start_new_thread(self.startjob,())
+        while True:
+            if not self.__keepPID():
+                exit()
+            time.sleep(1)
+    def stop(self):
+        if self.__isPID():
+            os.kill(self.pid,SIGTERM)
+        if self.__isAlive(self.pid):
             return False
-    def __isDaemon(self):
-        if os.path.isfile(pidfile):
-            try:
-                pid = int(open(pidfile).read().strip())
-            except:
-                pid = None
-            if pid:
-                if self.__isAlive(pid):
-                    return True
+        os.unlink(self.pidfile)
+        return True
+    def status(self):
+        if self.__isAlive(self.__isPID()):
+            print "pid %d ,daemon is started"%self.pid
+        else:
+            print "daemon is stoped"
+    def __isAlive(self,pid):
+        if type(pid) == int:
+            if os.path.isdir('/proc/%d'%pid):
+                return True
         return False
-    def __keepPid(self):
+    def __isPID(self):
         if os.path.isfile(self.pidfile):
             try:
-                pid = int(open(pidfile).read().strip())
+                self.pid = int(open(self.pidfile).read().strip())
             except:
-                pid = None
-        if pid:
-            if os.getpid() == pid:
-                return 0
-            else:
-                if self.__isDaemon():
-                    print('daemon is already running,stop now.')
-                    sys.exit(self.EXIT_AlreadyRun)
-        try:
-            open(pidfile,'w').write(str(os.getpid())+'\n')
-        except:
-            print(traceback.print_exc())
-            print("can not write pid to '%s',stop now.")
-            sys.exit(self.EXIT_PIDWriteError)
+                print(traceback.print_exc())
+                self.pid = None
+            return self.pid
+        return False
+    def __keepPID(self):
+        if self.__isPID() and os.getpid() == self.__isPID():
+            return True
+        if self.__isAlive(self.pid):
+            print('daemon is already running')
+            return False
+        else:
+            try:
+                open(self.pidfile,'w').write(str(os.getpid())+'\n')
+            except:
+                print(traceback.print_exc())
+                print("can not write pid to '%s',stop now.")
+                return False
+        return True
+
+if __name__ == "__main__":
+    def usage():
+        print 'usage: %s start|stop|status' %sys.argv[0]
+
+    daemon = DaemonMgr('pydaemon')
+    if len(sys.argv) != 2:
+        usage()
+    elif sys.argv[1] == 'start':
+        daemon.start()
+    elif sys.argv[1] == 'stop':
+        daemon.stop()
+    elif sys.argv[1] == 'status':
+        daemon.status()
+    else: usage()
