@@ -2,7 +2,6 @@ import os,sys
 import time
 import traceback
 import signal
-import thread
 from signal import SIGTERM
 
 class DaemonMgr:
@@ -44,7 +43,7 @@ class DaemonMgr:
         os.dup2(so.fileno(), sys.stdout.fileno())
         os.dup2(se.fileno(), sys.stderr.fileno())
 
-        thread.start_new_thread(self.startjob,())
+        self.startjob()
         while True:
             if not self.__keepPID():
                 sys.exit(1)
