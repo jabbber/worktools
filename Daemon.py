@@ -52,6 +52,7 @@ class DaemonMgr:
     def stop(self):
         if self.__isPID():
             if self.__isAlive(self.pid):
+                print "pid %d ,%s is stoping"%(self.pid,self.name)
                 os.kill(self.pid,SIGTERM)
                 n = 0
                 while self.__isAlive(self.pid):
@@ -60,8 +61,10 @@ class DaemonMgr:
                         print "pid %d ,%s stoped failed."%(self.pid,self.name)
                         return False
                     time.sleep(0.1)
+                print "pid %d ,%s is stoped"%(self.pid,self.name)
+            else:
+                print "pid %d ,%s has been stoped"%(self.pid,self.name)
             os.unlink(self.pidfile)
-            print "pid %d ,%s is stoped"%(self.pid,self.name)
         else:
             print "%s has been stoped"%self.name
         return True
