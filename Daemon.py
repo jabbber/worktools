@@ -1,5 +1,6 @@
 import os,sys
 import time
+import threading
 import traceback
 import signal
 from signal import SIGTERM
@@ -43,7 +44,7 @@ class DaemonMgr:
         os.dup2(so.fileno(), sys.stdout.fileno())
         os.dup2(se.fileno(), sys.stderr.fileno())
 
-        self.startjob()
+        self.Work(self.startjob)
         while True:
             if not self.__keepPID():
                 sys.exit(1)
@@ -51,7 +52,6 @@ class DaemonMgr:
     def stop(self):
         if self.__isPID():
             if self.__isAlive(self.pid):
-                print "pid %d ,%s is stoping"%(self.pid,self.name)
                 os.kill(self.pid,SIGTERM)
                 n = 0
                 while self.__isAlive(self.pid):
@@ -60,10 +60,8 @@ class DaemonMgr:
                         print "pid %d ,%s stoped failed."%(self.pid,self.name)
                         return False
                     time.sleep(0.1)
-                print "pid %d ,%s is stoped"%(self.pid,self.name)
-            else:
-                print "pid %d ,%s has been stoped"%(self.pid,self.name)
             os.unlink(self.pidfile)
+            print "pid %d ,%s is stoped"%(self.pid,self.name)
         else:
             print "%s has been stoped"%self.name
         return True
@@ -100,6 +98,14 @@ class DaemonMgr:
                 print("can not write pid to '%s',stop now.")
                 return False
         return True
+    class Work(threading.Thread):
+        def __init__(self,function):
+            threading.Thread.__init__(self)
+            self.daemon = True
+            self.function = function
+            self.start()
+        def run(self):
+            self.function()
 
 if __name__ == "__main__":
     def usage():

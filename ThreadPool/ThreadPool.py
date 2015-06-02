@@ -101,7 +101,7 @@ class DaemonMgr:
         os.dup2(so.fileno(), sys.stdout.fileno())
         os.dup2(se.fileno(), sys.stderr.fileno())
 
-        self.startjob()
+        self.Work(self.startjob)
         while True:
             if not self.__keepPID():
                 sys.exit(1)
@@ -155,6 +155,14 @@ class DaemonMgr:
                 print("can not write pid to '%s',stop now.")
                 return False
         return True
+    class Work(threading.Thread):
+        def __init__(self,function):
+            threading.Thread.__init__(self)
+            self.daemon = True
+            self.function = function
+            self.start()
+        def run(self):
+            self.function()
 
 if __name__ == "__main__":
     def usage():
@@ -175,3 +183,4 @@ if __name__ == "__main__":
     elif sys.argv[1] == 'status':
         daemon.status()
     else: usage()
+
