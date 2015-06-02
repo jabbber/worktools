@@ -125,8 +125,13 @@ class DaemonMgr:
     def status(self):
         if self.__isAlive(self.__isPID()):
             print "pid %d ,%s is started"%(self.pid,self.name)
+            return True
         else:
-            print "%s is stoped"%self.name
+            if self.pid:
+                print "pid %d ,%s is died"%(self.pid,self.name)
+            else:
+                print "%s not running"%self.name
+            return False
     def __isAlive(self,pid,timeout=0):
         if type(pid) == int:
             if os.path.isdir('/proc/%d'%pid):
