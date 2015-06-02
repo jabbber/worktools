@@ -10,14 +10,14 @@ import signal
 from signal import SIGTERM
 
 logging.basicConfig(level=logging.DEBUG,
-    format='%(asctime)s [%(filename)s line:%(lineno)d] %(levelname)s: %(message)s',
+    format='%(asctime)s %(name)s [%(process)d] %(levelname)s: %(message)s',
     datefmt='%b %d %Y %H:%M:%S',
     filename='threadPool.log',
     filemode='a')
 
 console = logging.StreamHandler()
 console.setLevel(logging.WARNING)
-formatter = logging.Formatter('%(name)-12s: %(levelname)-8s %(message)s')
+formatter = logging.Formatter('%(name)-12s: %(thread)-6d %(levelname)-8s %(message)s')
 console.setFormatter(formatter)
 logging.getLogger('').addHandler(console)
 
@@ -27,7 +27,7 @@ class TaskManager:
         self.__maxThreads = maxThreads
         self.__taskQueue = Queue.Queue(maxTasks)
         self.__threads = []
-        self.__logger = logging.getLogger('ThreadPool')
+        self.__logger = logging.getLogger('TaskMgr')
 
         self.initThreads()
     
@@ -46,7 +46,7 @@ class TaskManager:
 
     def doJob(self,task):
         #overload to do work
-        self.__logger.debug("%s"%task)
+        self.__logger.debug("%d: %s"%task)
 
     class Work(threading.Thread):
         def __init__(self,taskmgr):
@@ -67,25 +67,26 @@ class DaemonMgr:
         self.name = name
         self.pidfile = '/tmp/%s.pid'%name
         self.pid = None
+        self.__logger = logging.getLogger('DaemonMgr')
     def startjob(self):
         pass
     def stopjob(self):
         pass
     def start(self):
         if self.__isAlive(self.__isPID()):
-            print('pid %d, %s is already running'%(self.pid,self.name))
-            sys.exit(0)
+            print 'pid %d, %s is already running'%(self.pid,self.name)
+            return True
         pid = os.fork()
         if pid:
             n = 0 
             while not self.__isPID():
                 n += 1
                 if n > 100:
-                    print('start time out!')
-                    sys.exit(1)
+                    print 'start time out!'
+                    return False
                 time.sleep(0.1)
             print "pid %d, %s is started."%(self.pid, self.name)
-            sys.exit(0)
+            return True
         os.chdir("/")
         os.setsid()
         os.umask(0)
@@ -104,7 +105,7 @@ class DaemonMgr:
         self.Work(self.startjob)
         while True:
             if not self.__keepPID():
-                sys.exit(1)
+                return False
             time.sleep(1)
     def stop(self):
         if self.__isPID():
@@ -115,23 +116,23 @@ class DaemonMgr:
                     n += 1
                     if n > 100:
                         print "pid %d ,%s stoped failed."%(self.pid,self.name)
-                        sys.exit(1)
+                        return False
                     time.sleep(0.1)
             os.unlink(self.pidfile)
             print "pid %d ,%s is stoped"%(self.pid,self.name)
         else:
             print "%s has been stoped"%self.name
-        sys.exit(0)
+        return True
     def status(self):
         if self.__isAlive(self.__isPID()):
             print "pid %d ,%s is started"%(self.pid,self.name)
-            sys.exit(0)
+            return True
         else:
             if self.pid:
                 print "pid %d ,%s is died"%(self.pid,self.name)
             else:
                 print "%s not running"%self.name
-            sys.exit(1)
+            return False
     def __isAlive(self,pid,timeout=0):
         if type(pid) == int:
             if os.path.isdir('/proc/%d'%pid):
@@ -149,15 +150,17 @@ class DaemonMgr:
     def __keepPID(self):
         if self.__isPID() and os.getpid() == self.__isPID():
             return True
-        if self.__isAlive(self.pid):
-            print('%s is already running'%self.name)
+        if self.__isAlive(self.__isPID()):
+            self.__logger.warning('%s is already running'%self.name)
             return False
         else:
             try:
                 open(self.pidfile,'w').write(str(os.getpid())+'\n')
+                self.__logger.debug('%s is running, %s create'%(self.name,self.pidfile))
+                self.__logger.info('%s is started'%self.name)
             except:
-                print(traceback.print_exc())
-                print("can not write pid to '%s',stop now.")
+                self.__logger.error(traceback.print_exc())
+                self.__logger.error("can not write pid to '%s',stop now.")
                 return False
         return True
     class Work(threading.Thread):
@@ -171,7 +174,7 @@ class DaemonMgr:
 
 if __name__ == "__main__":
     def usage():
-        print 'usage: %s start|stop|status' %sys.argv[0]
+        print 'usage: %s start|stop|status|restart' %sys.argv[0]
     class MyDaemonMgr(DaemonMgr):
         def startjob(self):
             taskmgr = TaskManager(100,10)
@@ -182,10 +185,13 @@ if __name__ == "__main__":
     if len(sys.argv) != 2:
         usage()
     elif sys.argv[1] == 'start':
-        daemon.start()
+        if daemon.start(): sys.exit(0)
     elif sys.argv[1] == 'stop':
-        daemon.stop()
+        if daemon.stop(): sys.exit(0)
     elif sys.argv[1] == 'status':
-        daemon.status()
+        if daemon.status(): sys.exit(0)
+    elif sys.argv[1] == 'restart':
+        if daemon.stop() and daemon.start(): sys.exit(0)
     else: usage()
+    sys.exit(1)
 
