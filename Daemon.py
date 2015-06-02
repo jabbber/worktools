@@ -16,45 +16,61 @@ class DaemonMgr:
         pass
     def start(self):
         if self.__isAlive(self.__isPID()):
-            print('daemon is already running')
+            print('pid %d, %s is already running'%(self.pid,self.name))
             return True
         pid = os.fork()
         if pid:
-            def onSigChld(*args):
-                pass
-            signal.signal(signal.SIGCHLD, onSigChld)
             n = 0 
             while not self.__isPID():
                 n += 1
                 if n > 100:
                     print('start time out!')
-                    sys.exit(self.EXIT_Timeout)
+                    sys.exit(1)
                 time.sleep(0.1)
-            print('started')
-            print "%s has been started."%self.name
-            return True
+            print "pid %d, %s has been started."%(self.pid, self.name)
+            sys.exit(0)
+        os.chdir("/")
         os.setsid()
+        os.umask(0)
         pid = os.fork()
         if pid:
             exit()
+        sys.stdout.flush()
+        sys.stderr.flush()
+        si = file("/dev/null", 'r')
+        so = file("/dev/null", 'a+')
+        se = file("/dev/null", 'a+', 0)
+        os.dup2(si.fileno(), sys.stdin.fileno())
+        os.dup2(so.fileno(), sys.stdout.fileno())
+        os.dup2(se.fileno(), sys.stderr.fileno())
+
         thread.start_new_thread(self.startjob,())
         while True:
             if not self.__keepPID():
-                exit()
+                sys.exit(1)
             time.sleep(1)
     def stop(self):
         if self.__isPID():
-            os.kill(self.pid,SIGTERM)
-        if self.__isAlive(self.pid):
-            return False
-        os.unlink(self.pidfile)
+            if self.__isAlive(self.pid):
+                os.kill(self.pid,SIGTERM)
+                n = 0
+                while self.__isAlive(self.pid):
+                    n += 1
+                    if n > 100:
+                        print "pid %d ,%s stoped failed."%(self.pid,self.name)
+                        return False
+                    time.sleep(0.1)
+            os.unlink(self.pidfile)
+            print "pid %d ,%s is stoped"%(self.pid,self.name)
+        else:
+            print "%s has been stoped"%self.name
         return True
     def status(self):
         if self.__isAlive(self.__isPID()):
-            print "pid %d ,daemon is started"%self.pid
+            print "pid %d ,%s is started"%(self.pid,self.name)
         else:
-            print "daemon is stoped"
-    def __isAlive(self,pid):
+            print "%s is stoped"%self.name
+    def __isAlive(self,pid,timeout=0):
         if type(pid) == int:
             if os.path.isdir('/proc/%d'%pid):
                 return True
@@ -72,7 +88,7 @@ class DaemonMgr:
         if self.__isPID() and os.getpid() == self.__isPID():
             return True
         if self.__isAlive(self.pid):
-            print('daemon is already running')
+            print('%s is already running'%self.name)
             return False
         else:
             try:
