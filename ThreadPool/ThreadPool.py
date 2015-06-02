@@ -84,7 +84,7 @@ class DaemonMgr:
                     print('start time out!')
                     sys.exit(1)
                 time.sleep(0.1)
-            print "pid %d, %s has been started."%(self.pid, self.name)
+            print "pid %d, %s is started."%(self.pid, self.name)
             sys.exit(0)
         os.chdir("/")
         os.setsid()
