@@ -74,7 +74,7 @@ class DaemonMgr:
     def start(self):
         if self.__isAlive(self.__isPID()):
             print('pid %d, %s is already running'%(self.pid,self.name))
-            return True
+            sys.exit(0)
         pid = os.fork()
         if pid:
             n = 0 
@@ -115,23 +115,23 @@ class DaemonMgr:
                     n += 1
                     if n > 100:
                         print "pid %d ,%s stoped failed."%(self.pid,self.name)
-                        return False
+                        sys.exit(1)
                     time.sleep(0.1)
             os.unlink(self.pidfile)
             print "pid %d ,%s is stoped"%(self.pid,self.name)
         else:
             print "%s has been stoped"%self.name
-        return True
+        sys.exit(0)
     def status(self):
         if self.__isAlive(self.__isPID()):
             print "pid %d ,%s is started"%(self.pid,self.name)
-            return True
+            sys.exit(0)
         else:
             if self.pid:
                 print "pid %d ,%s is died"%(self.pid,self.name)
             else:
                 print "%s not running"%self.name
-            return False
+            sys.exit(1)
     def __isAlive(self,pid,timeout=0):
         if type(pid) == int:
             if os.path.isdir('/proc/%d'%pid):
