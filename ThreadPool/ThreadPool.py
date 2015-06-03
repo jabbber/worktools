@@ -71,7 +71,7 @@ class TaskManager:
             threading.Thread.__init__(self)
             self.daemon = True
             self.__taskmgr = taskmgr
-            self.__logger = logging.getLogger('TaskMgr')
+            self.__logger = logging.getLogger('TaskMgr.Work')
             self.start()
 
         def run(self):
