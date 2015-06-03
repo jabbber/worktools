@@ -16,8 +16,14 @@ config_file = os.path.join(run_dir,'ThreadPool.cfg')
 cfg = ConfigParser.ConfigParser()
 cfg.read(config_file)
 
+loglevel = {
+    'debug': logging.DEBUG,
+    'info': logging.INFO,
+    'warning': logging.WARNING,
+    'error': logging.ERROR
+    }
 
-logging.basicConfig(level=logging.DEBUG,
+logging.basicConfig(level=loglevel[cfg.get('log','level')],
     format='%(asctime)s %(name)s [%(process)d] %(levelname)s: %(message)s',
     datefmt=cfg.get('log','datefmt'),
     filename=cfg.get('log','file'),
@@ -47,14 +53,18 @@ class TaskManager:
         return self.__taskQueue.get();
 
     def putTask(self,task):
-        if self.__taskQueue.full():
-            return False
+        while self.__taskQueue.full():
+            self.__logger.warning("task queue full, retry")
+            time.sleep(1)
         self.__taskQueue.put(task)
         return True
 
     def doJob(self,task):
         #overload to do work
         self.__logger.debug("%s"%task)
+
+    def getQsize(self):
+        return self.__taskQueue.qsize()
 
     class Work(threading.Thread):
         def __init__(self,taskmgr):
@@ -194,13 +204,24 @@ class DaemonMgr:
 if __name__ == "__main__":
     def usage():
         print 'usage: %s start|stop|status|restart' %sys.argv[0]
+    class MyTaskMgr(TaskManager):
+        def doJob(self,task):
+            logger = logging.getLogger('TaskMgr.Work')
+            time.sleep(task)
+            logger.debug('sleep %d seconds'%task)
     class MyDaemonMgr(DaemonMgr):
         def startjob(self):
+            logger = logging.getLogger('TaskMgr')
             global cfg
-            taskmgr = TaskManager(cfg.getint('task','task_max'),cfg.getint('task','thread'))
-            for i in range(100):
-                taskmgr.putTask(i)
+            taskmgr = MyTaskMgr(cfg.getint('task','task_max'),cfg.getint('task','thread'))
+            import random
+            n = 0
             while True:
+                logger.info("task queue size %d."%taskmgr.getQsize())
+                for i in range(random.randint(10,50)):
+                    taskmgr.putTask(random.randint(1,10))
+                    n += 1
+                logger.info("task insert '%d'"%n)
                 time.sleep(1)
 
     daemon = MyDaemonMgr('threadpool')
