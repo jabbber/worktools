@@ -92,8 +92,10 @@ class DaemonMgr:
         self.pid = None
         self.__logger = logging.getLogger('DaemonMgr')
     def startjob(self):
+        #overload to run main process
         pass
     def stopjob(self):
+        #overload to stop main process
         pass
     def start(self):
         if self.__isAlive(self.__isPID()):
@@ -202,8 +204,7 @@ class DaemonMgr:
                 self.__logger.error(traceback.format_exc())       
 
 if __name__ == "__main__":
-    def usage():
-        print 'usage: %s start|stop|status|restart' %sys.argv[0]
+    # over task and daemon manager to do some work
     class MyTaskMgr(TaskManager):
         def doJob(self,task):
             logger = logging.getLogger('TaskMgr.Work')
@@ -225,6 +226,8 @@ if __name__ == "__main__":
                 time.sleep(1)
 
     daemon = MyDaemonMgr('threadpool')
+    def usage():
+        print 'usage: %s start|stop|status|restart' %sys.argv[0]
     if len(sys.argv) != 2:
         usage()
     elif sys.argv[1] == 'start':
