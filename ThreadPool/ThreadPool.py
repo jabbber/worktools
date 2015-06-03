@@ -54,13 +54,14 @@ class TaskManager:
 
     def doJob(self,task):
         #overload to do work
-        self.__logger.debug("%d: %s"%task)
+        self.__logger.debug("%s"%task)
 
     class Work(threading.Thread):
         def __init__(self,taskmgr):
             threading.Thread.__init__(self)
             self.daemon = True
             self.__taskmgr = taskmgr
+            self.__logger = logging.getLogger('TaskMgr')
             self.start()
 
         def run(self):
@@ -68,7 +69,10 @@ class TaskManager:
                 task = None
                 task = self.__taskmgr.getTask()
                 if task:
-                    self.__taskmgr.doJob(task)
+                    try:
+                        self.__taskmgr.doJob(task)
+                    except:
+                        self.__logger.error(traceback.format_exc())
 
 class DaemonMgr:
     def __init__(self,name):
@@ -87,14 +91,11 @@ class DaemonMgr:
             return True
         pid = os.fork()
         if pid:
-            n = 0 
-            while not self.__isPID():
-                n += 1
-                if n > 100:
-                    print 'start time out!'
-                    return False
-                time.sleep(0.1)
-            print "pid %d, %s is started."%(self.pid, self.name)
+            time.sleep(1)
+            if not self.__isAlive(self.__isPID()):
+                print '%s start failed!'%self.name
+                return False
+            print "pid %d, %s is started."%(self.__isPID(), self.name)
             return True
         os.chdir("/")
         os.setsid()
@@ -110,12 +111,15 @@ class DaemonMgr:
         os.dup2(si.fileno(), sys.stdin.fileno())
         os.dup2(so.fileno(), sys.stdout.fileno())
         os.dup2(se.fileno(), sys.stderr.fileno())
-
-        self.Work(self.startjob)
+        work = self.Work(self.startjob)
         while True:
+            if not work.isAlive():
+                break
             if not self.__keepPID():
-                return False
+                self.__logger.error('can not write %s , %s stop'%(self.pidfile,self.name))
+                sys.exit(1)
             time.sleep(1)
+        self.__logger.warning('work is finished , %s stop'%self.name)
     def stop(self):
         if self.__isPID():
             if self.__isAlive(self.pid):
@@ -170,7 +174,7 @@ class DaemonMgr:
                 self.__logger.debug('%s is running, %s create'%(self.name,self.pidfile))
                 self.__logger.info('%s is started'%self.name)
             except:
-                self.__logger.error(traceback.print_exc())
+                self.__logger.error(traceback.format_exc())
                 self.__logger.error("can not write pid to '%s',stop now.")
                 return False
         return True
@@ -178,19 +182,26 @@ class DaemonMgr:
         def __init__(self,function):
             threading.Thread.__init__(self)
             self.daemon = True
+            self.__logger = logging.getLogger('DaemonMgr')
             self.function = function
             self.start()
         def run(self):
-            self.function()
+            try:
+                self.function()
+            except:
+                self.__logger.error(traceback.format_exc())       
 
 if __name__ == "__main__":
     def usage():
         print 'usage: %s start|stop|status|restart' %sys.argv[0]
     class MyDaemonMgr(DaemonMgr):
         def startjob(self):
-            taskmgr = TaskManager(100,10)
-            for i in (1,2,3,4,5,6,7):
+            global cfg
+            taskmgr = TaskManager(cfg.getint('task','task_max'),cfg.getint('task','thread'))
+            for i in range(100):
                 taskmgr.putTask(i)
+            while True:
+                time.sleep(1)
 
     daemon = MyDaemonMgr('threadpool')
     if len(sys.argv) != 2:
