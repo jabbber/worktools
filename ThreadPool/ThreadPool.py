@@ -1,23 +1,31 @@
 #!/usr/bin/env python2
 # -*- coding: utf-8 -*-
+import os,sys
 import logging
+import ConfigParser
 import threading
 import Queue
-import os,sys
 import time
 import traceback
 import signal
 from signal import SIGTERM
 
+# Parser config
+run_dir = os.path.dirname(unicode(__file__, sys.getfilesystemencoding( )))
+config_file = os.path.join(run_dir,'ThreadPool.cfg')
+cfg = ConfigParser.ConfigParser()
+cfg.read(config_file)
+
+
 logging.basicConfig(level=logging.DEBUG,
     format='%(asctime)s %(name)s [%(process)d] %(levelname)s: %(message)s',
-    datefmt='%b %d %Y %H:%M:%S',
-    filename='threadPool.log',
+    datefmt=cfg.get('log','datefmt'),
+    filename=cfg.get('log','file'),
     filemode='a')
 
 console = logging.StreamHandler()
 console.setLevel(logging.WARNING)
-formatter = logging.Formatter('%(name)-12s: %(thread)-6d %(levelname)-8s %(message)s')
+formatter = logging.Formatter('%(name)-12s: %(levelname)-8s %(message)s')
 console.setFormatter(formatter)
 logging.getLogger('').addHandler(console)
 
@@ -65,7 +73,8 @@ class TaskManager:
 class DaemonMgr:
     def __init__(self,name):
         self.name = name
-        self.pidfile = '/tmp/%s.pid'%name
+        global cfg
+        self.pidfile = cfg.get('daemon','pid')
         self.pid = None
         self.__logger = logging.getLogger('DaemonMgr')
     def startjob(self):
@@ -119,7 +128,9 @@ class DaemonMgr:
                         return False
                     time.sleep(0.1)
             os.unlink(self.pidfile)
-            print "pid %d ,%s is stoped"%(self.pid,self.name)
+            msg =  "pid %d ,%s is stoped"%(self.pid,self.name)
+            self.__logger.info(msg)
+            print msg
         else:
             print "%s has been stoped"%self.name
         return True
