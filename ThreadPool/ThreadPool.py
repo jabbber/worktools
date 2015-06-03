@@ -60,7 +60,7 @@ class TaskManager:
         return True
 
     def doJob(self,task):
-        #overload to do work
+        '''overload to do work'''
         self.__logger.debug("%s"%task)
 
     def getQsize(self):
@@ -92,10 +92,10 @@ class DaemonMgr:
         self.pid = None
         self.__logger = logging.getLogger('DaemonMgr')
     def startjob(self):
-        #overload to run main process
+        '''overload to run main process'''
         pass
     def stopjob(self):
-        #overload to stop main process
+        '''overload to stop main process'''
         pass
     def start(self):
         if self.__isAlive(self.__isPID()):
