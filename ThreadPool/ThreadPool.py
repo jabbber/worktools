@@ -50,7 +50,12 @@ class TaskManager:
     
     def initThreads(self):
         for i in range(self.__maxThreads):
-            self.__threads[i] = self.Work(i,self)
+            try:
+                self.__threads[i] = self.Work(i,self)
+            except:
+                self.__logger.warning(traceback.format_exc())
+                self.__logger.warning("can not create more than %d threads!"%i)
+                break
     
     def getTask(self):
         return self.__taskQueue.get();
