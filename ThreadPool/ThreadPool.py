@@ -9,6 +9,7 @@ import time
 import traceback
 import signal
 from signal import SIGTERM
+import uuid
 
 # Parser config
 run_dir = os.path.dirname(unicode(__file__, sys.getfilesystemencoding( )))
@@ -40,14 +41,16 @@ class TaskManager:
         self.__maxTasks = maxTasks
         self.__maxThreads = maxThreads
         self.__taskQueue = Queue.Queue(maxTasks)
-        self.__threads = []
+        self.__threads = {}
+        self.idel = {}
+        self.working = {}
         self.__logger = logging.getLogger('TaskMgr')
 
         self.initThreads()
     
     def initThreads(self):
         for i in range(self.__maxThreads):
-            self.__threads.append(self.Work(self))
+            self.__threads[i] = self.Work(i,self)
     
     def getTask(self):
         return self.__taskQueue.get();
@@ -67,22 +70,35 @@ class TaskManager:
         return self.__taskQueue.qsize()
 
     class Work(threading.Thread):
-        def __init__(self,taskmgr):
+        def __init__(self,name,taskmgr):
             threading.Thread.__init__(self)
+            self.name = name
             self.daemon = True
+            self.__task = None
             self.__taskmgr = taskmgr
-            self.__logger = logging.getLogger('TaskMgr.Work')
+            self.__logger = logging.getLogger('TaskMgr.Work(%s)'%self.name)
             self.start()
 
         def run(self):
             while True:
-                task = None
-                task = self.__taskmgr.getTask()
-                if task:
+                self.__task = None
+                self.__taskmgr.idel[self.name] = ''
+                self.__task = self.__taskmgr.getTask()
+                if self.__task:
+                    taskID = uuid.uuid4()
+                    self.__taskmgr.idel.pop(self.name)
+                    self.__taskmgr.working[self.name] = taskID
+                    self.__logger.debug('task %s begin'%taskID)
                     try:
-                        self.__taskmgr.doJob(task)
+                        self.__taskmgr.doJob(self.__task)
                     except:
                         self.__logger.error(traceback.format_exc())
+                    self.__taskmgr.working.pop(self.name)
+                    self.__logger.debug('task %s end'%taskID)
+        def idel(self):
+            if self.__task:
+                return True
+            return False
 
 class DaemonMgr:
     def __init__(self,name):
@@ -219,6 +235,8 @@ if __name__ == "__main__":
             n = 0
             while True:
                 logger.info("task queue size %d."%taskmgr.getQsize())
+                logger.info("thread idel %d"%len(taskmgr.idel))
+                logger.info("thread working %d"%len(taskmgr.working))
                 for i in range(random.randint(10,50)):
                     taskmgr.putTask(random.randint(1,10))
                     n += 1
