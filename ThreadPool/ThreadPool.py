@@ -235,7 +235,7 @@ if __name__ == "__main__":
         def startjob(self):
             logger = logging.getLogger('TaskMgr')
             global cfg
-            taskmgr = MyTaskMgr(cfg.getint('task','task_max'),cfg.getint('task','thread'))
+            taskmgr = MyTaskMgr(cfg.getint('task','task_max'),cfg.getint('task','thread_max'))
             import random
             n = 0
             while True:
