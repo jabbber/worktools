@@ -8,7 +8,6 @@ import Queue
 import time
 import traceback
 import signal
-from signal import SIGTERM
 import uuid
 
 # Parser config
@@ -118,6 +117,16 @@ class DaemonMgr:
     def stopjob(self):
         '''overload to stop main process'''
         pass
+    def stopHander(self,signum, frame):
+        try:
+            self.stopjob()
+        except:
+            self.__logger.error(traceback.format_exc())
+            self.__logger.error("can not stop program savely ,stop force now.")
+        msg = "%s is stoped by signal %s."%(self.name, signum)
+        self.__logger.warning(msg)
+        sys.exit(0)
+
     def start(self):
         if self.__isAlive(self.__isPID()):
             print 'pid %d, %s is already running'%(self.pid,self.name)
@@ -145,6 +154,7 @@ class DaemonMgr:
         os.dup2(so.fileno(), sys.stdout.fileno())
         os.dup2(se.fileno(), sys.stderr.fileno())
         work = self.Work(self.startjob)
+        signal.signal(signal.SIGTERM, self.stopHander)
         while True:
             if not work.isAlive():
                 break
@@ -156,7 +166,7 @@ class DaemonMgr:
     def stop(self):
         if self.__isPID():
             if self.__isAlive(self.pid):
-                os.kill(self.pid,SIGTERM)
+                os.kill(self.pid,signal.SIGTERM)
                 n = 0
                 while self.__isAlive(self.pid):
                     n += 1
@@ -205,7 +215,7 @@ class DaemonMgr:
             try:
                 open(self.pidfile,'w').write(str(os.getpid())+'\n')
                 self.__logger.debug('%s is running, %s create'%(self.name,self.pidfile))
-                self.__logger.info('%s is started'%self.name)
+                self.__logger.warning('%s is started'%self.name)
             except:
                 self.__logger.error(traceback.format_exc())
                 self.__logger.error("can not write pid to '%s',stop now.")
@@ -247,6 +257,8 @@ if __name__ == "__main__":
                     n += 1
                 logger.info("task insert '%d'"%n)
                 time.sleep(1)
+        def stopjob(self):
+            pass
 
     daemon = MyDaemonMgr('threadpool')
     def usage():
