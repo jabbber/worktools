@@ -54,7 +54,7 @@ checkname = str(sys.argv[1])
 if checkname == 'ip':
     for hostname in sorted(result.keys()):
         print hostname + " " + result[hostname]['ip']
-elif checkname != '系统网络状态':
+elif not checkname in ('系统网络状态','System network status'):
     output = {}
     for hostname in sorted(result.keys()):
         try:
