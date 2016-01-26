@@ -24,15 +24,15 @@ case $action in
     ;;
 esac
 
-dnlist=`ldapsearch -H $URI -x -D "$admin_dn" -w "$admin_pw" -b "$searchbase" -LLL uid="$keyword" dn|grep "^dn:"|awk '{ print $2 }'`
+dnlist=`ldapsearch -H $URI -x -D "$admin_dn" -w "$admin_pw" -b "$searchbase" -LLL cn="$keyword" dn|grep "^dn:"|awk '{ print $2 }'`
 
 if [[ $dnlist = "" ]];then
-    echo "not found user with 'uid=$keyword'"
+    echo "not found user with 'cn=$keyword'"
 fi
 
 if [[ $(echo -e "$dnlist"|wc -l) -gt 1 ]];then
     echo -e "match dn:\n$dnlist\n"
-    read -p "more then one dn are marched, are you sure? print 'Yes' to continue:" choice
+    read -p "more then one dn are marched, are you sure? Input 'Yes' to continue:" choice
     if [[ $choice != 'Yes' ]];then
         exit 0
     fi

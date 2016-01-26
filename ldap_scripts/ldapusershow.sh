@@ -3,7 +3,7 @@
 #load config
 source config.sh
 
-usage="example:\n$0 uid=[USERNAME]"
+usage="example:\n$0 cn=[USERNAME]"
 
 if [[ $1 = '-h' ]]; then
     echo -e $usage

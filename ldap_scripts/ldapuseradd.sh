@@ -14,18 +14,13 @@ fi
 username=$1
 
 cat >$commitfile <<EOF
-dn: uid=$username,ou=root,dc=example,dc=com
+dn: cn=$username,ou=aaa,ou=root,dc=example,dc=com
 cn: $username
-ou: root
-givenName: $username
-objectClass: top
-objectClass: posixAccount
-objectClass: inetOrgPerson
-uid: $username
-uidNumber: 1001
-gidNumber: 100
-sn: root
-homeDirectory:
+sn: $username
+ou: aaa
+objectClass: person
+objectClass: organizationalPerson
+pwdPolicySubentry: cn=Default Policy,dc=example,dc=com
 userPassword:
 EOF
 

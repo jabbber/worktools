@@ -2,13 +2,13 @@
 
 #load config
 source config.sh
-usage="usage:\n\t$0 [USERNAME] [PASSWORD]\n"
+usage="usage:\n\t$0 [USERNAME]\n"
 
-password=$2
+password=$1
 keyword=$1
 commitfile="/tmp/$$.ldif"
 
-if [[ $# -ne 2 ]];then
+if [[ $# -ne 1 ]];then
     echo -e $usage
     exit 1
 fi
@@ -30,16 +30,6 @@ fi
 IFS=$'\n'
 for dn in $dnlist
 do
-    password_s=`slappasswd -s $password`
-
-    cat >$commitfile <<EOF
-dn: $dn
-changetype: modify
-replace: userPassword
-userPassword: $password_s
-
-EOF
-    ldapmodify -H $URI -x -D "$admin_dn" -w "$admin_pw" -f $commitfile
-    rm $commitfile
+    ldappasswd -H $URI -x -D "$admin_dn" -w "$admin_pw" -e ppolicy -S $dn
 done
 
