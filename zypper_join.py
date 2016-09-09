@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 #author: zwj
+#version: 0.2
 #this script can join zypper pch and pa
 import sys
 import re
