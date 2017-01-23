@@ -19,11 +19,11 @@ def module_path():
     return os.path.dirname(unicode(__file__, sys.getfilesystemencoding( )))
 
 run_dir = os.path.realpath(module_path())
-sys.path.append(run_dir+'/require')
+sys.path.insert(0,run_dir+'/require')
 if os.path.isfile(run_dir):
     run_dir = os.path.dirname(run_dir)
 
-import openimsi
+import openimis
 
 HOST_LIST = 'hostlist'
 BLACK_LIST = 'blacklist'
@@ -85,10 +85,10 @@ def create_report(dist_dir):
                     diff_set = tableDiff.genDiffSet(table1,table2)
                     html = tableDiff.table2htmlHighlight(table1,diff_set)
                 else:
-                    html = openimsi.get_html(filename,tname)
+                    html = openimis.get_html(filename,tname)
             else:
-                html = openimsi.get_html(filename,tname)
-            soup = openimsi.BeautifulSoup(html)
+                html = openimis.get_html(filename,tname)
+            soup = openimis.BeautifulSoup(html)
             if len(soup.find_all('tr')) > 1:
                 count += 1
                 if head:
@@ -137,12 +137,12 @@ if __name__ == '__main__':
 
     if sys.argv[1] in ('-d', '--diff'):
         import tableDiff
-        html = tableDiff.openimsiDiff(sys.argv[2], sys.argv[3])
+        html = tableDiff.openimisDiff(sys.argv[2], sys.argv[3])
         open('%s/diff.html'%run_dir,'w').write(html)
         print 'output to %s/diff.html\n'%run_dir
         sys.exit(0)
 
-    t = openimsi.Tables()
+    t = openimis.Tables()
 
     host_list = '%s/%s'%(run_dir,HOST_LIST)
     for ext in ('.txt','.xlsx'):

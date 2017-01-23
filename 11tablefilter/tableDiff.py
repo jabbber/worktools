@@ -2,11 +2,11 @@
 # -*- coding: utf-8 -*-
 
 import sys
-import openimsi
-from openimsi import TABLE_STYLE,TH_STYLE,TD_STYLE
+import openimis
+from openimis import TABLE_STYLE,TH_STYLE,TD_STYLE
 
 def getTables(table_file,title):
-    tables = openimsi.Tables()
+    tables = openimis.Tables()
     tables.load(table_file)
     for i,value in enumerate(tables.titles):
         if value == title:
@@ -121,7 +121,7 @@ def table2htmlHighlight(table,filter_set):
     return html
 
 
-def openimsiDiff(file1, file2):
+def openimisDiff(file1, file2):
     title = '分区日常检查异常明细-未备注/未处理'
     table1 = getTables(file1,title)
     table2 = getTables(file2,title)
