@@ -22,14 +22,26 @@ class CouchDB:
         return self.__returnHandle(a,b)
     def putdoc(self,doc):
         current = self.getdoc(doc["主机名"])
-        if "_rev" in current:
-            doc['_rev'] = current['_rev']
         diff = False
+        for key in doc.keys():
+            if doc[key] == "":
+                doc.pop(key)
         for key in doc:
-            if doc[key] != current[key.decode('utf-8')]:
-                flag = True
+            if key.decode('utf-8') not in current:
+                diff = True
+                break
+            elif doc[key] != current[key.decode('utf-8')].encode('utf-8'):
+                diff = True
+                break
+        for key in current:
+            if key != "_rev" and key !="_id" and key.encode('utf-8') not in doc:
+                diff = True
+                print 3
+                print key
                 break
         if diff:
+            if "_rev" in current:
+                doc['_rev'] = current['_rev']
             a,b = commands.getstatusoutput("%s PUT %s/%s -d '%s'"%(self.cmd,self.url,doc['主机名'],jsondump(doc)))
             return self.__returnHandle(a,b)
         else:
@@ -48,3 +60,4 @@ if __name__ == "__main__":
                 db = CouchDB(url)
                 result = db.putdoc(doc)
                 print doc['主机名']+ ':'+ jsondump(result)
+
