@@ -3,7 +3,9 @@
 import csv
 import json
 import sys
-import commands
+import requests
+
+debug = False
 
 def jsondump(item):
     return json.dumps(item, sort_keys=True,indent=4).decode('unicode_escape').encode('utf-8')
@@ -11,15 +13,13 @@ def jsondump(item):
 class CouchDB:
     def __init__(self,url):
         self.url = url
-        self.cmd = "curl -s -X"
-    def __returnHandle(self,a,b):
-        if a == 0:
-            return json.loads(b)
-        else:
-            return {}
+    def __returnHandle(self,status,content):
+        if debug:
+            print status + ':' + content
+        return json.loads(content)
     def getdoc(self,id):
-        a,b = commands.getstatusoutput("%s GET %s/%s"%(self.cmd,self.url,id))
-        return self.__returnHandle(a,b)
+        r = requests.get("%s/%s"%(self.url,id))
+        return self.__returnHandle(r.status_code,r.content)
     def putdoc(self,doc):
         current = self.getdoc(doc["主机名"])
         diff = False
@@ -36,14 +36,12 @@ class CouchDB:
         for key in current:
             if key != "_rev" and key !="_id" and key.encode('utf-8') not in doc:
                 diff = True
-                print 3
-                print key
                 break
         if diff:
             if "_rev" in current:
                 doc['_rev'] = current['_rev']
-            a,b = commands.getstatusoutput("%s PUT %s/%s -d '%s'"%(self.cmd,self.url,doc['主机名'],jsondump(doc)))
-            return self.__returnHandle(a,b)
+            r = requests.put("%s/%s"%(self.url,doc['主机名']), data=jsondump(doc) )
+            return self.__returnHandle(r.status_code,r.content)
         else:
             return {"status":"skip", "reason":"No difference."}
 
@@ -51,7 +49,6 @@ if __name__ == "__main__":
     with open(sys.argv[1]) as f:
         reader = csv.DictReader(f)
         rows = list(reader)
-
 #    url = 'http://admin:admin@10.214.160.113:5984/devtest'
     url = sys.argv[2]
     for doc in rows:
