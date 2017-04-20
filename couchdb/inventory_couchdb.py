@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 #This is a inventory script for ansible
 #author: zhouwenjun
-#version: 1.0.1
+#version: 1.0.2
 
 import requests
 import json
@@ -30,13 +30,12 @@ result['null'] = []
 group_key = group_key.decode('utf-8')
 for row in rows:
     doc = row['doc']
-    result['_meta']['hostvars'][row['key']] = {'hostname':row['id']}
+    result['_meta']['hostvars'][row['id']] = {'ansible_host':row['key']}
     if group_key not in doc:
-        result['null'].append(row['key'])
+        result['null'].append(row['id'])
     elif doc[group_key] not in result:
-        result[doc[group_key]] = [row['key']]
+        result[doc[group_key]] = [row['id']]
     else:
-        result[doc[group_key]].append(row['key'])
+        result[doc[group_key]].append(row['id'])
 
 print(jsondump(result))
-
