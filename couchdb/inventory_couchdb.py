@@ -2,15 +2,21 @@
 # -*- coding: utf-8 -*-
 #This is a inventory script for ansible
 #author: zhouwenjun
-#version: 1.0.2
-
+#version: 1.1.0
+import os
 import requests
 import json
 
+view_url = os.environ.get('view_url')
+group_key = os.environ.get('group_key')
+if not view_url:
 #couchdb view api url
-view_url = 'http://10.214.160.113:5984/devtest/_design/server/_view/by_ip?include_docs=true'
+    view_url = 'http://10.214.160.113:5984/devtest/_design/server/_view/by_ip?include_docs=true'
+if not group_key:
 #分组的参考属性
-group_key = '应用项目'
+    group_key = '应用项目'
+
+
 
 def jsondump(item):
     return json.dumps(item, sort_keys=True,indent=4).decode('unicode_escape').encode('utf-8')
