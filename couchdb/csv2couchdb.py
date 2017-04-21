@@ -2,13 +2,27 @@
 ## -*- coding: utf-8 -*-
 import csv
 import json
-import sys
+import os,sys
 import requests
+import re
 
 debug = False
 
 def jsondump(item):
     return json.dumps(item, sort_keys=True,indent=4).decode('unicode_escape').encode('utf-8')
+
+def csvreader(filepath):
+    with open(filepath) as f:
+        content = f.read()
+    tmpfile = '/tmp/tmpcsv-2bbecb7e-c8fa-4dda-9314-21584a5d6493'
+    with open(tmpfile,'w') as f:
+        content = re.sub('\r\n','\n',content)
+        f.write(content)
+    with open(tmpfile) as f:
+        reader = csv.DictReader(f)
+        rows = list(reader)
+    os.unlink(tmpfile)
+    return rows
 
 class CouchDB:
     def __init__(self,url):
@@ -46,9 +60,7 @@ class CouchDB:
             return {"status":"skip", "reason":"No difference."}
 
 if __name__ == "__main__":
-    with open(sys.argv[1]) as f:
-        reader = csv.DictReader(f)
-        rows = list(reader)
+    rows = csvreader(sys.argv[1])
 #    url = 'http://admin:admin@10.214.160.113:5984/devtest'
     url = sys.argv[2]
     for doc in rows:
