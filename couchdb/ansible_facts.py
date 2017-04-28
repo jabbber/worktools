@@ -4,6 +4,7 @@ import json
 import os,sys
 import requests
 import time
+import multiprocessing.dummy
 
 debug = False
 
@@ -24,12 +25,14 @@ class AnsibleAPI:
             self.url = url
         def __str__(self):
             return repr("%d : '%s' url='%s'"%(self.status,self.content,self.url))
-    def __returnHandle(self,status,content,url):
+    def __returnHandle(self,status,content,url,warning=()):
         if status == 200:
             return json.loads(content)
+        elif status in warning or warning == 'all':
+            print >> sys.stderr, self.Error(status,content,url)
         else:
             raise self.Error(status,content,url)
-    def request(self,method, url ,data = None):
+    def request(self,method, url ,data = None,warning=()):
         fullurl = "http"
         if self.ssl:
             fullurl += 's'
@@ -42,7 +45,7 @@ class AnsibleAPI:
             r =  requests.request(method,fullurl,auth=(self.user,self.__passwd),verify = self.verify, data = data)
         else:
             r =  requests.request(method,fullurl,auth=(self.user,self.__passwd),verify = self.verify)
-        return self.__returnHandle(r.status_code,r.content,fullurl)
+        return self.__returnHandle(r.status_code,r.content,fullurl,warning)
     def gethosts(self):
         result = self.request("GET","/api/v1/hosts/")
         count = result['count']
@@ -55,32 +58,49 @@ class AnsibleAPI:
         self.hosts = hosts
         return hosts
     def getfactsbyhostid(self,hostid):
-        result = self.request("GET","/api/v1/hosts/%d/job_events/?page=last"%hostid)
-        jobs = result['results']
-        for job in jobs:
-            if job['event_data']['res'].has_key('ansible_facts'):
-                return job['event_data']['res']['ansible_facts']
-        while result['previous']:
-            result = self.request("GET",result['previous'])
-            jobs = result['results']
+        def getfactsin(hostid,events):
+            warning = 'all'
+            result = self.request("GET","/api/v1/hosts/%d/%s/?page=last"%(hostid,events),warning=warning)
+            if not result:
+                return None
+            jobs = result.get('results')
             for job in jobs:
                 if job['event_data']['res'].has_key('ansible_facts'):
                     return job['event_data']['res']['ansible_facts']
-        return None
+            while result['previous']:
+                result = self.request("GET",result['previous'],warning=warning)
+                jobs = result['results']
+                for job in jobs:
+                    if job['event_data']['res'].has_key('ansible_facts'):
+                        return job['event_data']['res']['ansible_facts']
+            return None
+        job_fact = getfactsin(hostid,'job_events')
+        command_fact = getfactsin(hostid,'ad_hoc_command_events')
+        return job_fact or command_fact
     def getfacts(self):
-        self.gethosts()
-        facts = {}
-        for host in self.hosts:
-            print "%s %s %s"%(host['id'] ,host['name'],time.ctime())
-            try:
-
-                fact =  self.getfactsbyhostid(host['id'])
-            except self.Error, content:
-                print >> sys.stderr, content
-            if fact:
-                facts[host['name']] = fact
+        pool = multiprocessing.dummy.Pool(50)
+        results = pool.map(self.getfactsbyhostid,[host['id'] for host in self.hosts])
+        #results = map(self.getfactsbyhostid,[host['id'] for host in self.hosts])
+        facts = dict(zip([host['name'] for host in self.hosts],results))
+#        facts = {}
+#        for host in self.hosts:
+#            print "%s %s %s"%(host['id'] ,host['name'],time.ctime())
+#            fact =  self.getfactsbyhostid(host['id'])
+#            facts[host['name']] = fact
+        self.facts = facts
         return facts
 
+def main():
+    api = AnsibleAPI('10.214.129.160','admin','admin')
+    api.gethosts()
+    print time.ctime()
+    api.getfacts()
+    print time.ctime()
+    print len(api.facts)
+    facts = {host:api.facts[host] for host in api.facts if api.facts[host]}
+    print len(facts)
+    print [host for host in facts]
+    return api
 if __name__ == "__main__":
 #    url = 'https://10.214.129.160/api/v1/hosts/?format=json'
     pass
