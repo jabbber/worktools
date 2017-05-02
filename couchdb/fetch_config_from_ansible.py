@@ -116,6 +116,7 @@ def main():
     ansible_api.getfacts()
     for host in ansible_api.facts:
         values = getcolume(ansible_api.facts[host])
+        print host + ": ",
         print couchdb_api.updatadoc(host,values)
 
 
