@@ -12,12 +12,12 @@ def jsondump(item):
     return json.dumps(item, sort_keys=True,indent=4).decode('unicode_escape').encode('utf-8')
 
 class AnsibleAPI:
-    def __init__(self,host,user,passwd):
+    def __init__(self,host,user,passwd,ssl=True,verify=False):
         self.host = host
         self.user = user
         self.__passwd = passwd
-        self.ssl = True
-        self.verify = False
+        self.ssl = ssl
+        self.verify = verify
     class Error(Exception):
         def __init__(self, status,content,url):
             self.status = status
@@ -41,10 +41,7 @@ class AnsibleAPI:
             fullurl += "&format=json"
         else:
             fullurl += "?format=json"
-        if data:
-            r =  requests.request(method,fullurl,auth=(self.user,self.__passwd),verify = self.verify, data = data)
-        else:
-            r =  requests.request(method,fullurl,auth=(self.user,self.__passwd),verify = self.verify)
+        r =  requests.request(method,fullurl,auth=(self.user,self.__passwd),verify = self.verify, data = data)
         return self.__returnHandle(r.status_code,r.content,fullurl,warning)
     def gethosts(self):
         result = self.request("GET","/api/v1/hosts/")
@@ -80,13 +77,10 @@ class AnsibleAPI:
     def getfacts(self):
         pool = multiprocessing.dummy.Pool(50)
         results = pool.map(self.getfactsbyhostid,[host['id'] for host in self.hosts])
-        #results = map(self.getfactsbyhostid,[host['id'] for host in self.hosts])
         facts = dict(zip([host['name'] for host in self.hosts],results))
-#        facts = {}
-#        for host in self.hosts:
-#            print "%s %s %s"%(host['id'] ,host['name'],time.ctime())
-#            fact =  self.getfactsbyhostid(host['id'])
-#            facts[host['name']] = fact
+        for host in facts.keys():
+            if not facts[host]:
+                facts.pop(host)
         self.facts = facts
         return facts
 
@@ -96,10 +90,9 @@ def main():
     print time.ctime()
     api.getfacts()
     print time.ctime()
+    print len(api.hosts)
     print len(api.facts)
-    facts = {host:api.facts[host] for host in api.facts if api.facts[host]}
-    print len(facts)
-    print [host for host in facts]
+    print api.facts.keys()
     return api
 if __name__ == "__main__":
 #    url = 'https://10.214.129.160/api/v1/hosts/?format=json'
