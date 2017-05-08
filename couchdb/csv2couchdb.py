@@ -44,7 +44,7 @@ class CouchDB:
             if key.decode('utf-8') not in current:
                 diff = True
                 break
-            elif doc[key] != current[key.decode('utf-8')].encode('utf-8'):
+            elif doc[key].decode('utf-8') != current[key.decode('utf-8')]:
                 diff = True
                 break
         for key in current:
