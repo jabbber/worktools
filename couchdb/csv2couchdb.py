@@ -58,9 +58,8 @@ if __name__ == "__main__":
 #    url = 'http://admin:admin@10.214.160.113:5984/devtest'
     url = sys.argv[2]
     for doc in rows:
-        if '主机名' in doc:
-            if doc['主机名'] != "":
-                db = CouchDB(url)
-                result = db.putdoc(doc)
-                print doc['主机名']+ ':'+ jsondump(result)
+        if doc.get('主机名') != "":
+            db = CouchDB(url)
+            result = db.putdoc(doc)
+            print doc['主机名']+ ':'+ jsondump(result)
 
