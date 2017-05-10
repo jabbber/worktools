@@ -11,17 +11,10 @@ debug = False
 def jsondump(item):
     return json.dumps(item, sort_keys=True,indent=4).decode('unicode_escape').encode('utf-8')
 
-def csvreader(filepath):
-    with open(filepath) as f:
-        content = f.read()
-    tmpfile = '/tmp/tmpcsv-2bbecb7e-c8fa-4dda-9314-21584a5d6493'
-    with open(tmpfile,'w') as f:
-        content = re.sub('\r\n','\n',content)
-        f.write(content)
-    with open(tmpfile) as f:
-        reader = csv.DictReader(f)
-        rows = list(reader)
-    os.unlink(tmpfile)
+def csvreader(f):
+    content = [row.rstrip() for row in f]
+    reader = csv.DictReader(content)
+    rows = list(reader)
     return rows
 
 class CouchDB:
@@ -60,7 +53,8 @@ class CouchDB:
             return {"status":"skip", "reason":"No difference."}
 
 if __name__ == "__main__":
-    rows = csvreader(sys.argv[1])
+    with open(sys.argv[1]) as f:
+        rows = csvreader(f)
 #    url = 'http://admin:admin@10.214.160.113:5984/devtest'
     url = sys.argv[2]
     for doc in rows:
