@@ -18,6 +18,7 @@ class CouchDB:
         self.__passwd = passwd
         self.ssl = ssl
         self.verify = verify
+        self.status = 0
     class Error(Exception):
         def __init__(self, status,content,url):
             self.status = status
@@ -26,12 +27,14 @@ class CouchDB:
         def __str__(self):
             return repr("%d : '%s' url='%s'"%(self.status,self.content,self.url))
     def __returnHandle(self,status,content,url,warning=()):
+        self.status = status
         if 200 <= status < 300:
-            return json.loads(content)
+            pass
         elif status in warning or warning == 'all':
             print >> sys.stderr, self.Error(status,content,url)
         else:
             raise self.Error(status,content,url)
+        return json.loads(content)
     def request(self,method, url ,data = None,warning=()):
         fullurl = "http"
         if self.ssl:
@@ -43,28 +46,31 @@ class CouchDB:
         result = self.request("GET",viewurl)
         return [row['id'] for row in result['rows']]
     def getdoc(self,id):
-        return self.request("GET","/"+id)
+        return self.request("GET","/"+id,warning=(404,))
     def putdoc(self,doc):
         current = self.getdoc(doc["主机名"])
         diff = False
         for key in doc.keys():
             if doc[key] == "":
                 doc.pop(key)
-        for key in doc:
-            if key.decode('utf-8') not in current:
-                diff = True
-                break
-            elif doc[key] != current[key.decode('utf-8')].encode('utf-8'):
-                diff = True
-                break
-        for key in current:
-            if key != "_rev" and key !="_id" and key.encode('utf-8') not in doc:
-                diff = True
-                break
+        if self.status == 404:
+            return self.request("PUT","/"+doc['主机名'], data=jsondump(doc))
+        else:
+            for key in doc:
+                if key.decode('utf-8') not in current:
+                    diff = True
+                    break
+                elif doc[key].decode('utf-8') != current[key.decode('utf-8')]:
+                    diff = True
+                    break
+            for key in current:
+                if key != "_rev" and key !="_id" and key.encode('utf-8') not in doc:
+                    diff = True
+                    break
         if diff:
             if "_rev" in current:
                 doc['_rev'] = current['_rev']
-            return self.request("PUT","/"+doc['主机名'], data=jsondump(doc) )
+            return self.request("PUT","/"+doc['主机名'], data=jsondump(doc))
         else:
             return None
     def updatadoc(self,id,values):
