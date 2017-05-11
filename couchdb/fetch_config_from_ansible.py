@@ -66,7 +66,7 @@ class CouchDB:
                 doc['_rev'] = current['_rev']
             return self.request("PUT","/"+doc['主机名'], data=jsondump(doc) )
         else:
-            return {"status":"skip", "reason":"No difference."}
+            return None
     def updatadoc(self,id,values):
         doc = self.getdoc(id)
         diff = False
@@ -81,7 +81,7 @@ class CouchDB:
         if diff:
             return self.request("PUT","/"+id, data=jsondump(doc) )
         else:
-            return {"status":"skip", "reason":"No difference."}
+            return None
 
 def getcolume(fact):
     values = {}
@@ -118,7 +118,6 @@ def main():
         values = getcolume(ansible_api.facts[host])
         print host + ": ",
         print couchdb_api.updatadoc(host,values)
-
 
 if __name__ == "__main__":
 #    url = sys.argv[1]

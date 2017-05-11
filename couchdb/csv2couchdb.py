@@ -18,15 +18,36 @@ def csvreader(f):
     return rows
 
 class CouchDB:
-    def __init__(self,url):
-        self.url = url
-    def __returnHandle(self,status,content):
-        if debug:
-            print status + ':' + content
-        return json.loads(content)
+    def __init__(self,host,database,user,passwd,ssl=False,verify=False):
+        self.host = host
+        self.database = database
+        self.user = user
+        self.__passwd = passwd
+        self.ssl = ssl
+        self.verify = verify
+    class Error(Exception):
+        def __init__(self, status,content,url):
+            self.status = status
+            self.content = content
+            self.url = url
+        def __str__(self):
+            return repr("%d : '%s' url='%s'"%(self.status,self.content,self.url))
+    def __returnHandle(self,status,content,url,warning=()):
+        if 200 <= status < 300:
+            return json.loads(content)
+        elif status in warning or warning == 'all':
+            print >> sys.stderr, self.Error(status,content,url)
+        else:
+            raise self.Error(status,content,url)
+    def request(self,method, url ,data = None,warning=()):
+        fullurl = "http"
+        if self.ssl:
+            fullurl += 's'
+        fullurl += "://%s/%s%s"%(self.host,self.database,url)
+        r =  requests.request(method,fullurl,auth=(self.user,self.__passwd),verify = self.verify, data = data)
+        return self.__returnHandle(r.status_code,r.content,fullurl,warning)
     def getdoc(self,id):
-        r = requests.get("%s/%s"%(self.url,id))
-        return self.__returnHandle(r.status_code,r.content)
+        return self.request("GET","/"+id)
     def putdoc(self,doc):
         current = self.getdoc(doc["主机名"])
         diff = False
@@ -47,19 +68,17 @@ class CouchDB:
         if diff:
             if "_rev" in current:
                 doc['_rev'] = current['_rev']
-            r = requests.put("%s/%s"%(self.url,doc['主机名']), data=jsondump(doc) )
-            return self.__returnHandle(r.status_code,r.content)
+            return self.request("PUT","/"+doc['主机名'], data=jsondump(doc) )
         else:
-            return {"status":"skip", "reason":"No difference."}
+            return None
 
 if __name__ == "__main__":
     with open(sys.argv[1]) as f:
         rows = csvreader(f)
 #    url = 'http://admin:admin@10.214.160.113:5984/devtest'
-    url = sys.argv[2]
+    db =  CouchDB('10.214.160.113:5984','devtest','zhouwenjun','123456',ssl=False,verify=False)
     for doc in rows:
         if doc.get('主机名') != "":
-            db = CouchDB(url)
             result = db.putdoc(doc)
             print doc['主机名']+ ':'+ jsondump(result)
 
