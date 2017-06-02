@@ -100,9 +100,8 @@ def getcolume(fact):
     values[u'序列号'] = fact['ansible_product_serial']
     values[u'IP地址'] = fact['ansible_all_ipv4_addresses']
     values[u'操作系统'] = fact['ansible_distribution'] +"_"+ fact['ansible_architecture'] +"_"+ fact['ansible_distribution_version']
-    values[u'存储'] = {}
-    for key in fact['ansible_devices']:
-        values[u'存储'][key] = {'model':fact['ansible_devices'][key]['model'],'size':fact['ansible_devices'][key]['size']}
+    values[u'存储'] = fact['ansible_devices']
+    values[u'文件系统'] = fact['ansible_mounts']
     values[u'网卡'] = {}
     for key in fact:
         if type(fact[key]) == dict:
@@ -111,6 +110,11 @@ def getcolume(fact):
                 if fact[key].has_key('module'): values[u'网卡'][fact[key]['device']]['module'] = fact[key]['module']
                 if fact[key].has_key('speed'): values[u'网卡'][fact[key]['device']]['speed'] = fact[key]['speed']
                 if fact[key].has_key('ipv4'): values[u'网卡'][fact[key]['device']]['ipaddress'] = fact[key]['ipv4']['address']
+    values[u'网络'] = {}
+    if 'ansible_bond0' in fact:
+        values[u'网络']['bond0'] = fact['ansible_bond0']
+    if 'ansible_bond1' in fact:
+        values[u'网络']['bond1'] = fact['ansible_bond1']
     return values
 
 def main():
