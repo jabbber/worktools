@@ -13,11 +13,13 @@ import argparse
 parser = argparse.ArgumentParser()
 parser.add_argument("--server_url")
 parser.add_argument("--select_by")
+parser.add_argument("--list", nargs='?',
+                        const=True)
 args = parser.parse_args()
 
 server_url = args.server_url or os.environ.get('server_url')
 select_by = args.select_by or os.environ.get('select_by')
-if not server_url and select_by:
+if not server_url or not select_by:
     parser.print_usage()
     exit(1)
 if type(select_by) == str:
