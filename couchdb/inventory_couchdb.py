@@ -9,14 +9,17 @@
 import os
 import requests
 import json
+import argparse
+parser = argparse.ArgumentParser()
+parser.add_argument("--server_url")
+parser.add_argument("--select_by")
+args = parser.parse_args()
 
-server_url = os.environ.get('server_url')
-select_by = os.environ.get('select_by')
-if not server_url:
-#couchdb view api url
-    server_url = 'http://zhouwenjun:123456@10.214.160.210:5984/devtest'
-if not select_by:
-    select_by = u'开发测试'
+server_url = args.server_url or os.environ.get('server_url')
+select_by = args.select_by or os.environ.get('select_by')
+if not server_url and select_by:
+    parser.print_usage()
+    exit(1)
 if type(select_by) == str:
     select_by = unicode(select_by,encoding='utf-8')
 
