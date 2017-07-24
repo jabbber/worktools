@@ -4,8 +4,6 @@
 #
 # you must set the 
 # "server_url"
-# and 
-# "select_by"
 # in the environment variables first
 #
 #author: zhouwenjun
@@ -14,17 +12,17 @@ import os
 import requests
 import json
 
+#请求的couchdb数据库连接
+server_url = os.environ.get('server_url',"http://ansible:tower@10.214.160.210:5984/beta")
 #select_by要搜索的属性名
-select_key = u'机房区域'
-
+select_by = os.environ.get('select_by',u'.*')
+select_key = os.environ.get('select_key',u'机房区域')
 #搜索结果的分组依据
-group_key = u'应用项目'
+group_key = os.environ.get('group_key',u'应用项目')
 
 os.environ["LC_ALL"] = "en_US.utf-8"
 
-server_url = os.environ.get('server_url')
-select_by = os.environ.get('select_by')
-if not server_url or not select_by:
+if not server_url:
     exit(1)
 if type(select_by) == str:
     select_by = unicode(select_by,encoding='utf-8')
@@ -63,6 +61,9 @@ for doc in docs:
         result[doc[group_key]] = [doc[u'主机名']]
     else:
         result[doc[group_key]].append(doc[u'主机名'])
+
+if not result['null']:
+    result.pop('null')
 
 if not result['_meta']['hostvars']:
     result['_meta']['hostvars']['error: "select_by" = "%s"'%select_by] = {}
