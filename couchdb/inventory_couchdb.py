@@ -2,39 +2,39 @@
 # -*- coding: utf-8 -*-
 #This is a inventory script for ansible ans ansible tower
 #
-# you can set the "server_url" and "select_by" in the environment variables
+# you must set the 
+# "server_url"
+# and 
+# "select_by"
+# in the environment variables first
 #
 #author: zhouwenjun
 #version: 1.1.0
 import os
 import requests
 import json
-import argparse
-parser = argparse.ArgumentParser()
-parser.add_argument("--server_url")
-parser.add_argument("--select_by")
-parser.add_argument("--list", nargs='?',
-                        const=True)
-args = parser.parse_args()
 
-server_url = args.server_url or os.environ.get('server_url')
-select_by = args.select_by or os.environ.get('select_by')
+#select_by要搜索的属性名
+select_key = u'机房区域'
+
+#搜索结果的分组依据
+group_key = u'应用项目'
+
+os.environ["LC_ALL"] = "en_US.utf-8"
+
+server_url = os.environ.get('server_url')
+select_by = os.environ.get('select_by')
 if not server_url or not select_by:
-    parser.print_usage()
     exit(1)
 if type(select_by) == str:
     select_by = unicode(select_by,encoding='utf-8')
-
-#分组的参考属性
-
-group_key = u'应用项目'
 
 def jsondump(item):
     return json.dumps(item, sort_keys=True,indent=4).decode('unicode_escape').encode('utf-8')
 
 req = {
     "selector": {
-        u"分类": {
+        select_key: {
             "$regex": select_by
         },
         u"主IP": {"$gt": None}
