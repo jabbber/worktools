@@ -7,7 +7,7 @@
 # in the environment variables first
 #
 #author: zhouwenjun
-#version: 1.1.0
+#version: 1.2.0
 import os
 import requests
 import json
@@ -24,8 +24,18 @@ os.environ["LC_ALL"] = "en_US.utf-8"
 
 if not server_url:
     exit(1)
-if type(select_by) == str:
-    select_by = unicode(select_by,encoding='utf-8')
+
+def decoder(i):
+    if type(i) == str:
+        if i.find('\u') > -1:
+            i = i.decode('unicode-escape')
+        else:
+            i = i.decode('utf-8')
+    return i
+
+select_by = decoder(select_by)
+select_key = decoder(select_key)
+group_key = decoder(group_key)
 
 def jsondump(item):
     return json.dumps(item, sort_keys=True,indent=4).decode('unicode_escape').encode('utf-8')
@@ -64,7 +74,6 @@ for doc in docs:
 
 if not result['null']:
     result.pop('null')
-
 if not result['_meta']['hostvars']:
     result['_meta']['hostvars']['error: "select_by" = "%s"'%select_by] = {}
 
