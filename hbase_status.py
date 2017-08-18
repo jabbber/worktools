@@ -34,7 +34,11 @@ for row in region_status:
     data = row[row.find(': ')+1:]
     data = re.sub('([a-zA-Z]\w+)(?![=\w])','"\\1"',data)
     data = data.replace('"NaN"','None')
-    regions['data'].append(dict(host=name,status=eval("dict(%s)"%data)))
+    item = eval("dict(%s)"%data)
+    item['hostname'] = name
+    for i in item.pop('coprocessors'):
+        item['coprocessors'+'_'+i] = True
+    regions['data'].append(item)
 
 print json.dumps(regions,sort_keys=True,indent=4)
 
