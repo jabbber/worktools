@@ -1,3 +1,4 @@
+#!/usr/bin/env python2
 import requests
 import re
 import sys
@@ -27,13 +28,13 @@ def sectionCut(text,name):
 
 region_status = sectionCut(hbase_dump.text,'Servers').split('\n')
 
-regions = {}
+regions = {'data':[]}
 for row in region_status:
     name = row[:row.find(':')]
     data = row[row.find(': ')+1:]
     data = re.sub('([a-zA-Z]\w+)(?![=\w])','"\\1"',data)
     data = data.replace('"NaN"','None')
-    regions[name] = eval("dict(%s)"%data)
+    regions['data'].append(dict(host=name,status=eval("dict(%s)"%data)))
 
 print json.dumps(regions,sort_keys=True,indent=4)
 
