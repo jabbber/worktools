@@ -25,7 +25,7 @@ hbshell() {
     return $status
 }
 
-return_code=0
+return_code=''
 
 failed() {
     if [[ $1 -ne 0 ]]; then
