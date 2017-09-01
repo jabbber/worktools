@@ -1,7 +1,7 @@
 #!/bin/sh
-POINT=1
+POINT=1000
 
-DEBUG=1
+DEBUG=0
 
 return_code=1
 max_ms=0
@@ -35,6 +35,10 @@ do
     fi
 done
 IFS=$old_IFS
+
+if [[ $return_code -ne 0 ]];then
+    max_ms=10000
+fi
 
 echo $max_ms
 exit $return_code
