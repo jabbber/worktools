@@ -1,14 +1,16 @@
 #!/usr/bin/env python2
-import requests
+import urllib2
 import re
 import sys
 import json
 
 dump_url = "http://10.214.160.196:60010/dump"
 
-hbase_dump = requests.get(dump_url)
+f = urllib2.urlopen(dump_url)
 
-if not hbase_dump.ok:
+hbase_dump = f.read().decode('utf-8')
+
+if not hbase_dump:
     exit(1)
 
 def sectionCut(text,name):
@@ -26,7 +28,7 @@ def sectionCut(text,name):
         sys.stderr.write('"Servers" sections cannot find!\n')
         exit(2)
 
-region_status = sectionCut(hbase_dump.text,'Servers').split('\n')
+region_status = sectionCut(hbase_dump,'Servers').split('\n')
 
 regions = {'data':[]}
 for row in region_status:
