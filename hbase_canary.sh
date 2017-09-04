@@ -1,5 +1,6 @@
 #!/bin/sh
 POINT=1000
+HBASE_CONF=/root/hbase_conf
 
 DEBUG=0
 
@@ -8,7 +9,7 @@ max_ms=0
 
 old_IFS=$IFS
 IFS=$'\n'
-for line in `hbase org.apache.hadoop.hbase.tool.Canary 2>&1|grep region`;
+for line in `hbase --config $HBASE_CONF org.apache.hadoop.hbase.tool.Canary 2>&1|grep region`;
 do
     ms=`echo $line|sed -n 's/.*in \([0-9]*\)ms$/\1/p'`
 
