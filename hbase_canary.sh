@@ -17,7 +17,7 @@ do
         max_ms=$ms
     fi
 
-    if [[ $ms -eq '' ]];then
+    if [[ -z $ms ]];then
         if [[ $DEBUG -ne 0 ]];then
             echo $line >&2
         fi
