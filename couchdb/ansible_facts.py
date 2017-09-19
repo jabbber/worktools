@@ -85,7 +85,7 @@ class AnsibleAPI:
         return facts
 
 def main():
-    api = AnsibleAPI('10.214.129.160','admin','admin')
+    api = AnsibleAPI('10.214.129.160','cmdb','cmdb1234')
     api.gethosts()
     print time.ctime()
     api.getfacts()
@@ -96,4 +96,5 @@ def main():
     return api
 if __name__ == "__main__":
 #    url = 'https://10.214.129.160/api/v1/hosts/?format=json'
+    main()
     pass
