@@ -11,6 +11,7 @@
 import os
 import requests
 import json
+import re
 
 #请求的couchdb数据库连接
 server_url = os.environ.get('server_url',"http://ansible:tower@10.214.160.210:5984/beta")
@@ -20,7 +21,9 @@ select_key = os.environ.get('select_key',u'机房区域')
 #搜索结果的分组依据
 group_key = os.environ.get('group_key',u'机房区域/应用项目')
 
+
 os.environ["LC_ALL"] = "en_US.utf-8"
+os_blacklist = ['Esx','windows']
 
 if not server_url:
     exit(1)
@@ -42,6 +45,13 @@ group_keys = group_key.split('/')
 def jsondump(item):
     return json.dumps(item, sort_keys=True,indent=4).decode('unicode_escape').encode('utf-8')
 
+def blacklist(word,keys):
+    for key in keys:
+        if re.match(key,word,flags=re.IGNORECASE):
+            return True
+    return False
+
+
 req = {
     "selector": {
         select_key: {
@@ -49,7 +59,7 @@ req = {
         },
         u"主IP": {"$gt": None}
     },
-    "fields": [u"主机名",u"主IP"]+group_keys,
+    "fields": [u"主机名",u"主IP",u"操作系统"]+group_keys,
     "limit": 9999,
 }
 
@@ -65,6 +75,8 @@ docs = view['docs']
 result = {}
 result['_meta'] = {'hostvars':{}}
 for doc in docs:
+    if blacklist(doc.get(u'操作系统',''),os_blacklist):
+        continue
     result['_meta']['hostvars'][doc[u'主机名']] = {'ansible_host':doc[u'主IP']}
     group_name = '/'.join([doc.get(key) or 'None' for key in group_keys])
     if group_name not in result:
