@@ -7,7 +7,7 @@
 # in the environment variables first
 #
 #author: zhouwenjun
-#version: 1.4.0
+#version: 1.5.0
 import os
 import requests
 import json
@@ -59,7 +59,7 @@ req = {
         },
         u"主IP": {"$gt": None}
     },
-    "fields": [u"主机名",u"主IP",u"操作系统"]+group_keys,
+    "fields": [u"主机名",u"主IP",u"ssh端口",u"操作系统"]+group_keys,
     "limit": 9999,
 }
 
@@ -78,6 +78,8 @@ for doc in docs:
     if blacklist(doc.get(u'操作系统',''),os_blacklist):
         continue
     result['_meta']['hostvars'][doc[u'主机名']] = {'ansible_host':doc[u'主IP']}
+    if doc.get(u'ssh端口'):
+        result['_meta']['hostvars'][doc[u'主机名']]['ansible_port'] = doc.get(u'ssh端口')
     group_name = '/'.join([doc.get(key) or 'None' for key in group_keys])
     if group_name not in result:
         result[group_name] = [doc[u'主机名']]
