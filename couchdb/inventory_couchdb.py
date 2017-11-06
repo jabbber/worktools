@@ -7,7 +7,7 @@
 # in the environment variables first
 #
 #author: zhouwenjun
-#version: 1.5.0
+#version: 1.5.1
 import os
 import requests
 import json
@@ -23,7 +23,7 @@ group_key = os.environ.get('group_key',u'机房区域/应用项目')
 
 
 os.environ["LC_ALL"] = "en_US.utf-8"
-os_blacklist = ['Esx','windows']
+os_blacklist = ['esx','windows']
 
 if not server_url:
     exit(1)
@@ -47,7 +47,7 @@ def jsondump(item):
 
 def blacklist(word,keys):
     for key in keys:
-        if re.match(key,word,flags=re.IGNORECASE):
+        if re.search(key,word,flags=re.IGNORECASE):
             return True
     return False
 
