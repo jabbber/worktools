@@ -51,15 +51,14 @@ def blacklist(word,keys):
             return True
     return False
 
-
 req = {
     "selector": {
         select_key: {
             "$regex": select_by
         },
-        u"主IP": {"$gt": None}
+        u"IP": {"$gt": None}
     },
-    "fields": [u"主机名",u"主IP",u"ssh端口",u"操作系统",u"激活"]+group_keys,
+    "fields": [u"主机名",u"IP",u"ssh端口",u"操作系统",u"激活"]+group_keys,
     "limit": 9999,
 }
 
@@ -79,7 +78,7 @@ for doc in docs:
         continue
     if doc.get(u'激活') == False:
         continue
-    result['_meta']['hostvars'][doc[u'主机名']] = {'ansible_host':doc[u'主IP']}
+    result['_meta']['hostvars'][doc[u'主机名']] = {'ansible_host':doc[u'IP']}
     if doc.get(u'ssh端口'):
         result['_meta']['hostvars'][doc[u'主机名']]['ansible_port'] = doc.get(u'ssh端口')
     group_name = '/'.join([doc.get(key) or 'None' for key in group_keys])
