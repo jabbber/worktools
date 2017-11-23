@@ -14,12 +14,12 @@ import json
 import re
 
 #请求的couchdb数据库连接
-server_url = os.environ.get('server_url',"http://ansible:tower@10.214.160.210:5984/beta")
+server_url = os.environ.get('server_url',"http://ansible:ansible@10.214.129.248:5984/cmdb")
 #select_by要搜索的属性名
 select_by = os.environ.get('select_by',u'.*')
 select_key = os.environ.get('select_key',u'机房区域')
 #搜索结果的分组依据
-group_key = os.environ.get('group_key',u'机房区域/应用项目')
+group_key = os.environ.get('group_key',u'机房区域/应用项目/部署角色')
 
 
 os.environ["LC_ALL"] = "en_US.utf-8"
@@ -59,7 +59,7 @@ req = {
         },
         u"主IP": {"$gt": None}
     },
-    "fields": [u"主机名",u"主IP",u"ssh端口",u"操作系统"]+group_keys,
+    "fields": [u"主机名",u"主IP",u"ssh端口",u"操作系统",u"激活"]+group_keys,
     "limit": 9999,
 }
 
@@ -76,6 +76,8 @@ result = {}
 result['_meta'] = {'hostvars':{}}
 for doc in docs:
     if blacklist(doc.get(u'操作系统',''),os_blacklist):
+        continue
+    if doc.get(u'激活') == False:
         continue
     result['_meta']['hostvars'][doc[u'主机名']] = {'ansible_host':doc[u'主IP']}
     if doc.get(u'ssh端口'):
