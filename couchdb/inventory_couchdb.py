@@ -14,7 +14,7 @@ import json
 import re
 
 #请求的couchdb数据库连接
-server_url = os.environ.get('server_url',"http://ansible:ansible@10.214.129.248:5984/cmdb")
+server_url = os.environ.get('server_url',"https://ansible:ansible@10.214.129.248:6984/cmdb")
 #select_by要搜索的属性名
 select_by = os.environ.get('select_by',u'.*')
 select_key = os.environ.get('select_key',u'机房区域')
@@ -62,7 +62,7 @@ req = {
     "limit": 9999,
 }
 
-r = requests.post(server_url+'/_find',json=req)
+r = requests.post(server_url+'/_find',json=req,verify=False)
 
 if r.status_code != 200:
     print(r.content)
@@ -77,6 +77,7 @@ for doc in docs:
     if blacklist(doc.get(u'操作系统',''),os_blacklist):
         continue
     if doc.get(u'激活') == False:
+        print '========',doc[u'主机名']
         continue
     result['_meta']['hostvars'][doc[u'主机名']] = {'ansible_host':doc[u'IP']}
     if doc.get(u'ssh端口'):
@@ -91,3 +92,4 @@ if not result['_meta']['hostvars']:
     result['_meta']['hostvars']['error: "select_by" = "%s"'%select_by] = {}
 
 print(jsondump(result))
+
